@@ -2,14 +2,13 @@ language: android
 android:
     components:
         - tools
-        - build-tools-25.0.2
+        - build-tools-21.0.0
         - android-21
         - extra-android-m2repository
-        - extra-google-m2repository  
     licenses:
-        - 'android-sdk-preview-license-.+'
+        - 'android-sdk-preview-license-52d11cd2'
         - 'android-sdk-license-.+'
-        - 'intel-android-extra-license.+'
+        - '.+'
 jdk:
     - oraclejdk8
 addons:
@@ -17,6 +16,14 @@ addons:
         packages:
             - oracle-java8-installer
             - oracle-java8-set-default
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache
 before_install:
     - chmod +x gradlew
 script:
