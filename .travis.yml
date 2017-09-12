@@ -2,7 +2,7 @@ language: android
 android:
     components:
         - tools
-        - build-tools-21.0.0
+        - build-tools-25.0.3
         - android-21
         - extra-android-m2repository
     licenses:
@@ -18,13 +18,17 @@ addons:
             - oracle-java8-set-default
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - rm -f  $HOME/.gradle/caches/3.3/classAnalysis/classAnalysis.lock
+  - rm -f  $HOME/.gradle/caches/3.3/jarSnapshots/jarSnapshots.lock
 cache:
   directories:
     - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-    - $HOME/.android/build-cache
+    - $HOME/.gradle/wrapper/dists
+
 before_install:
+    - mkdir "$ANDROID_HOME/licenses" || true
+    - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+    - echo -e "\n7c928e048b455a44b323aba54342415d0429c542" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
     - chmod +x gradlew
 script:
     - ./gradlew clean build
