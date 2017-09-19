@@ -6,8 +6,10 @@ import android.support.v7.app.ActionBarActivity
 import android.os.Bundle
 import edu.nju.memo.R
 import edu.nju.memo.common.info
+import edu.nju.memo.core.parser.MimeItemFactory
 
 class QuickNewItemActivity : Activity() {
+    private val factory by lazy { MimeItemFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,24 +20,26 @@ class QuickNewItemActivity : Activity() {
         // 对于text/*
         // 首先遍历intent.clipData, 每一项如果有uri就存， 有text就存
         // 这里没有text的话就拿EXTRA_TEXT[Intent.EXTRA_TEXT]
-        if (intent != null) {
-            info(intent.scheme)
-            info(intent.type)
-            info(intent.clipData.description)
-            with(intent.clipData) {
-                for (i in 0 until itemCount) {
-                    info(getItemAt(i))
-                    info(getItemAt(i).text)
-                    info(getItemAt(i).uri)
-                }
-
-            }
-            info(intent.dataString)
-            with(intent.extras) {
-                info(getString(Intent.EXTRA_TEXT))
-                info(getString(Intent.EXTRA_HTML_TEXT))
-                info(getString(Intent.EXTRA_TITLE))
-            }
-        }
+        info(factory.parseIntent(intent, applicationContext))
+//        info(intent.component)
+//        if (intent != null) {
+//            info(intent.scheme)
+//            info(intent.type)
+//            info(intent.clipData.description)
+//            with(intent.clipData) {
+//                for (i in 0 until itemCount) {
+//                    this@QuickNewItemActivity.info(getItemAt(i))
+//                    this@QuickNewItemActivity.info(getItemAt(i).text)
+//                    this@QuickNewItemActivity.info(getItemAt(i).uri)
+//                    this@QuickNewItemActivity.info(getItemAt(i).coerceToText(applicationContext))
+//                }
+//
+//            }
+//            info(intent.dataString)
+//            with(intent.extras) {
+//                this@QuickNewItemActivity.info(getString(Intent.EXTRA_TEXT))
+//                this@QuickNewItemActivity.info(getString(Intent.EXTRA_HTML_TEXT))
+//                this@QuickNewItemActivity.info(getString(Intent.EXTRA_TITLE))
+//            }
     }
 }
