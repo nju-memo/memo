@@ -4,7 +4,7 @@ package edu.nju.memo.domain
  * Created by tinker on 2017/9/19.
  */
 class MemoItem() {
-
+    var id = 0
     var title = ""
     var content = ""
     var createTime = 0L

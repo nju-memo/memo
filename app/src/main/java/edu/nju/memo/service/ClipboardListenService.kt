@@ -1,7 +1,6 @@
 package edu.nju.memo.service
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.ClipboardManager
@@ -11,9 +10,7 @@ import android.os.IBinder
 import edu.nju.memo.MainActivity
 import edu.nju.memo.R
 import edu.nju.memo.common.asArr
-import edu.nju.memo.common.info
 import org.jetbrains.anko.toast
-import kotlin.concurrent.thread
 
 /**
  * Created by tinker on 2017/9/12.

@@ -1,14 +1,22 @@
 package edu.nju.memo.domain
 
 /**
- * Created by tinker on 2017/9/19.
+ * Class describes the attached content of the MemoItem. It's generated from the Intent#clipData,
+ * one for each ClipDataItem.
+ *
+ * If the content is the same as its parent's content, and the uri is null,
+ * then it will be dropped.
  */
+
 class Attachment() {
+
+    var id = 0
     var uri = ""
     var content = ""
+    var itemId = 0
 
     constructor(uri: String?, content: String?) : this() {
         this.uri = uri ?: ""
-        this.content = uri ?: ""
+        this.content = content ?: ""
     }
 }
