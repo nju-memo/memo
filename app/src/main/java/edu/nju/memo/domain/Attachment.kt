@@ -9,11 +9,9 @@ package edu.nju.memo.domain
  */
 
 class Attachment() {
-
-    var id = 0
+    var id = 0L
     var uri = ""
     var content = ""
-    var itemId = 0
 
     constructor(uri: String?, content: String?) : this() {
         this.uri = uri ?: ""

@@ -1,46 +1,47 @@
 package edu.nju.memo.domain
 
+import android.content.ContentValues
 import org.jetbrains.anko.db.*
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
+import kotlin.reflect.KClass
 
 /**
  * Created by tinker on 2017/9/20.
  */
 
-val ENTITIES = arrayOf("MEMOITEM", "ATTACHMENT")
-val CLASSES = mapOf(
-        Attachment::class.java to "ATTACHMENT",
-        MemoItem::class.java to "MEMOITEM"
+internal val ENTITIES = arrayOf("MEMOITEM_T", "ATTACHMENT_T", "TAG_T")
+internal val CLASSES = mapOf(
+        Attachment::class to "ATTACHMENT_T",
+        MemoItem::class to "MEMOITEM_T",
+        String::class to "TAG_T"
 )
 
-val TABLES = mapOf(
-        Attachment::class.java to arrayOf(
-                "AID" to (INTEGER + PRIMARY_KEY + AUTOINCREMENT),
-                "URI" to TEXT,
-                "CONTENT" to TEXT,
-                "IID" to INTEGER,
-                FOREIGN_KEY("IID", "MEMOITEM", "IID")),
-        MemoItem::class.java to arrayOf(
-                "IID" to (INTEGER + PRIMARY_KEY + AUTOINCREMENT),
+internal val TABLES = mapOf(
+        MemoItem::class to arrayOf(
                 "TITLE" to TEXT,
                 "CONTENT" to TEXT,
                 "CREATE_TIME" to INTEGER,
-                "READ" to INTEGER)
+                "READ" to INTEGER),
+        Attachment::class to arrayOf(
+                "IID" to INTEGER,
+                "URI" to TEXT,
+                "CONTENT" to TEXT),
+        String::class to arrayOf(
+                "IID" to INTEGER,
+                "TAG" to TEXT)
 )
 
-val FIELDS = mapOf(
-        Attachment::class.java to mapOf(
-                "AID" to Attachment::id.getter,
-                "URI" to Attachment::uri.getter,
-                "CONTENT" to Attachment::content.getter,
-                "IID" to Attachment::itemId.getter
-        ),
-        MemoItem::class.java to mapOf(
-                "IID" to MemoItem::id.getter,
-                "TITLE" to MemoItem::title.getter,
-                "CONTEXT" to MemoItem::content.getter,
-                "CREATE_TIME" to MemoItem::createTime.getter,
-                "READ" to MemoItem::hasRead.getter
-        )
+inline internal fun <reified T> tableOf() = CLASSES[T::class]!!
+
+inline internal fun <reified T> fieldsOf() = TABLES[T::class]!!
+
+internal fun MemoItem.toNamedArray() = arrayOf(
+        "TITLE" to title,
+        "CONTENT" to content,
+        "CREATE_TIME" to createTime,
+        "READ" to isRead
+)
+
+internal fun Attachment.toNamedArray() = arrayOf(
+        "URI" to uri,
+        "CONTENT" to content
 )
