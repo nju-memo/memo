@@ -19,9 +19,8 @@ object MemoItemFactoryImpl : MemoItemFactory {
             intentParsers[intent.type]!!(intent).apply { attachments = getAttachments(intent.clipData) }
                     .let { vendorHack(it, intent.extras) }
 
-    override fun getMemoItem(data: ClipData): MemoItem {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun getMemoItem(data: ClipData) =
+            getAttachments(data).let { wrapAttachment(it.removeAt(0)).apply { attachments = it } }
 
     private fun getAttachments(data: ClipData) =
             data.description.iter(data.itemCount, ClipDescription::getMimeType).
@@ -40,7 +39,6 @@ object MemoItemFactoryImpl : MemoItemFactory {
             ClipDescription.MIMETYPE_TEXT_URILIST to ::textUriList
     ).withDefault { { _: ClipData.Item -> Attachment() } }
 
-    private fun wrapAttachment() {
-
-    }
+    private fun wrapAttachment(attachment: Attachment) =
+            MemoItem(null, attachment.content).apply { addAttachment(attachment) }
 }
