@@ -1,5 +1,7 @@
 package edu.nju.memo.domain
 
+import android.net.Uri
+
 /**
  * Class describes the attached content of the MemoItem. It's generated from the Intent#clipData,
  * one for each ClipDataItem.
@@ -10,11 +12,15 @@ package edu.nju.memo.domain
 
 class Attachment() {
     var id = 0L
-    var uri = ""
+    var uri: Uri? = null
     var content = ""
 
-    constructor(uri: String?, content: String?) : this() {
-        this.uri = uri ?: ""
+    constructor(uri: Uri?, content: String?) : this() {
+        this.uri = uri
         this.content = content ?: ""
     }
+
+    override fun toString() = "Attachment(id=$id, uri=$uri, content='$content')"
+
+
 }

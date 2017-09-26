@@ -2,9 +2,11 @@ package edu.nju.memo.dao
 
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
+import android.net.Uri
 import com.android.internal.util.Predicate
 import edu.nju.memo.MainApplication
 import edu.nju.memo.common.Function
+import edu.nju.memo.common.warning
 import edu.nju.memo.domain.*
 import org.jetbrains.anko.db.*
 
@@ -72,7 +74,7 @@ object CachedMemoDao : MemoDao {
             setTransactionSuccessful()
             res = true
         } catch (e: TransactionAbortException) {
-            // Do nothing, just stop the transaction
+            warning(e)
         } finally {
             endTransaction()
             return res
@@ -144,8 +146,8 @@ object CachedMemoDao : MemoDao {
                         parseList(rowParser { tag: String -> tag }).toMutableList();it
             }.map {
                 it.attachments = select(tableOf<Attachment>(), "ROWID", "*").
-                        parseList(rowParser { id: Long, uri: String, content: String ->
-                            Attachment(uri, content).apply { this.id = id }
+                        parseList(rowParser { id: Long, _: Long, uri: String, content: String ->
+                            Attachment(Uri.parse(uri), content).apply { this.id = id }
                         }).toMutableList();it
             }.map { it.id to it }.let { mutableMapOf(*it.toTypedArray()) }
         }

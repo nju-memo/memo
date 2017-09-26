@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import edu.nju.memo.domain.MemoItem;
 import edu.nju.memo.service.StartFloatBallService;
 
 

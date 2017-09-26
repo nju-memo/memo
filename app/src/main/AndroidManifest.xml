@@ -25,7 +25,7 @@
             android:name=".service.StartFloatBallService"
             android:enabled="true" />
 
-        <activity android:name=".ImageTempActivity">
+        <activity android:name=".activities.QuickNewItemActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

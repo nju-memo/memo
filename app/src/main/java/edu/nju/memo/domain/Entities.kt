@@ -42,6 +42,6 @@ internal fun MemoItem.toNamedArray() = arrayOf(
 )
 
 internal fun Attachment.toNamedArray() = arrayOf(
-        "URI" to uri,
+        "URI" to uri.toString(),
         "CONTENT" to content
 )

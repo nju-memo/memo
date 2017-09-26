@@ -3,20 +3,19 @@ package edu.nju.memo.domain
 /**
  * Created by tinker on 2017/9/19.
  */
+private val defaultList = listOf("默认")
+
 class MemoItem() {
     var id = 0L
     var title = ""
     var content = ""
-    var createTime = 0L
+    var createTime = System.currentTimeMillis()
     var isRead = false
-    private var _attachments: MutableList<Attachment>? = null
-    var attachments: MutableList<Attachment>
-        get() {
-            if (_attachments == null) _attachments = mutableListOf()
-            return _attachments!!
-        }
-        set(value) = value.let { attachments = it }
-    var tags = mutableListOf("默认")
+    var attachments = mutableListOf<Attachment>()
+    var _tags = mutableListOf<String>()
+    var tags
+        get() = if (_tags.isEmpty()) defaultList else _tags.toList()
+        set(value) = value.let { _tags = value.toMutableList() }
 
     constructor(title: String?, content: String?) : this() {
         this.title = title ?: ""
@@ -27,6 +26,15 @@ class MemoItem() {
 
     fun removeAttachment(attachment: Attachment) = attachments.remove(attachment)
 
+    fun addTag(tag: String) {
+        if (_tags === defaultList) _tags = mutableListOf()
+        _tags.add(tag)
+    }
+
+    fun removeTag(tag: String) = _tags.remove(tag)
+
     override fun toString() =
-            "MemoItem(title='$title', content='$content', createTime=$createTime, isRead=$isRead"
+            "MemoItem(id=$id, title='$title', content='$content', createTime=$createTime, isRead=$isRead, tags=$tags)"
+
+
 }
