@@ -134,8 +134,8 @@ object CachedMemoDao : MemoDao {
     override fun refresh() = synchronized(this) {
         db.use {
             select(tableOf<MemoItem>(), "ROWID", "*").parseList(
-                    rowParser { id: Long, title: String, content: String, createTime: Long, read: Int ->
-                        MemoItem(title, content).apply {
+                    rowParser { id: Long, title: String, content: String, createTime: Long, type: String, read: Int ->
+                        MemoItem(title, content, type).apply {
                             this.id = id
                             this.createTime = createTime
                             this.isRead = read != 0
@@ -146,8 +146,8 @@ object CachedMemoDao : MemoDao {
                         parseList(rowParser { tag: String -> tag }).toMutableList();it
             }.map {
                 it.attachments = select(tableOf<Attachment>(), "ROWID", "*").
-                        parseList(rowParser { id: Long, _: Long, uri: String, content: String ->
-                            Attachment(Uri.parse(uri), content).apply { this.id = id }
+                        parseList(rowParser { id: Long, _: Long, uri: String, type: String, content: String ->
+                            Attachment(Uri.parse(uri), content, type).apply { this.id = id }
                         }).toMutableList();it
             }.map { it.id to it }.let { mutableMapOf(*it.toTypedArray()) }
         }

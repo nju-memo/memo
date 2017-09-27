@@ -20,10 +20,12 @@ internal val TABLES = mapOf(
                 "TITLE" to TEXT,
                 "CONTENT" to TEXT,
                 "CREATE_TIME" to INTEGER,
+                "TYPE" to TEXT,
                 "READ" to INTEGER),
         Attachment::class to arrayOf(
                 "IID" to INTEGER,
                 "URI" to TEXT,
+                "TYPE" to TEXT,
                 "CONTENT" to TEXT),
         String::class to arrayOf(
                 "IID" to INTEGER,
@@ -38,10 +40,12 @@ internal fun MemoItem.toNamedArray() = arrayOf(
         "TITLE" to title,
         "CONTENT" to content,
         "CREATE_TIME" to createTime,
+        "TYPE" to type,
         "READ" to isRead
 )
 
 internal fun Attachment.toNamedArray() = arrayOf(
         "URI" to uri.toString(),
+        "TYPE" to type,
         "CONTENT" to content
 )

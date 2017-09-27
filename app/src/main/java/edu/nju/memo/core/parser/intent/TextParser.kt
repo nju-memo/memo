@@ -11,5 +11,5 @@ import edu.nju.memo.domain.MemoItem
 /**
  * text/plain
  * */
-fun textPlain(intent: Intent) = MemoItem(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT))
+fun textPlain(intent: Intent) = MemoItem(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT), "text/plain")
 
