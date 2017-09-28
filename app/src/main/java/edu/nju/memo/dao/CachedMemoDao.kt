@@ -6,9 +6,12 @@ import android.net.Uri
 import com.android.internal.util.Predicate
 import edu.nju.memo.MainApplication
 import edu.nju.memo.common.Function
+import edu.nju.memo.common.ifTrue
+import edu.nju.memo.common.peek
 import edu.nju.memo.common.warning
 import edu.nju.memo.domain.*
 import org.jetbrains.anko.db.*
+import java.io.IOException
 
 object CachedMemoDao : MemoDao {
     private val db by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -22,31 +25,25 @@ object CachedMemoDao : MemoDao {
             }
         }
     }
-
     private val memoItems by lazy { refresh() }
 
     private fun insertCache(item: MemoItem) {
         memoItems[item.id] = item
     }
 
-    private fun deleteCache(id: Long) {
-        memoItems.remove(id)
-    }
+    private fun deleteCache(id: Long) = memoItems.remove(id)
 
     private fun insertMemoItem(item: MemoItem) = db.use {
-        insert(tableOf<MemoItem>(), *item.toNamedArray()).let {
-            if (it == -1L) throw SQLiteException("Failed to insert")
-            else it
-        }
+        insert(tableOf<MemoItem>(), *item.toNamedArray()).
+                takeIf { it != -1L } ?: throw SQLiteException("Failed to insert")
     }
 
     private fun insertAttachments(attachments: List<Attachment>, itemId: Long) = db.use {
-        attachments.forEach {
-            insert(tableOf<Attachment>(), *it.toNamedArray(), "IID" to itemId).let { id ->
-                if (id == -1L) throw SQLiteException("Failed to insert")
-                else it.id = id
-            }
-        }
+        attachments.peek { attachment ->
+            insert(tableOf<Attachment>(), *attachment.toNamedArray(), "IID" to itemId).
+                    takeIf { it != -1L }?.
+                    let { attachment.id = it } ?: throw SQLiteException("Failed to insert")
+        }.let { AttachmentFileCache.cacheToFile(attachments) }
     }
 
     private fun insertTags(tags: List<String>, itemId: Long) = db.use {
@@ -55,9 +52,9 @@ object CachedMemoDao : MemoDao {
     }
 
     private fun deleteAttachments(attachments: List<Attachment>, itemId: Long) = db.use {
-        attachments.forEach {
+        attachments.peek {
             delete(tableOf<Attachment>(), "ROWID=${it.id} AND IID=$itemId")
-        }
+        }.let { AttachmentFileCache.deleteCache(it) }
     }
 
     private fun deleteTags(tags: List<String>, itemId: Long) = db.use {
@@ -84,11 +81,11 @@ object CachedMemoDao : MemoDao {
     override fun insert(item: MemoItem) = db.use {
         withTx {
             insertMemoItem(item).let { id ->
-                insertAttachments(item.attachments, id)
                 insertTags(item.tags, id)
+                insertAttachments(item.attachments, id)
                 item.id = id
             }
-        }.also { res -> if (res) insertCache(item) }
+        }.ifTrue { insertCache(item) }
     }
 
     override fun delete(id: Long) = db.use {
@@ -96,7 +93,10 @@ object CachedMemoDao : MemoDao {
             delete(tableOf<MemoItem>(), "ROWID = $id")
             delete(tableOf<Attachment>(), "IID = $id")
             delete(tableOf<String>(), "IID = $id")
-        }.also { res -> if (res) deleteCache(id) }
+            select(id)?.let { AttachmentFileCache.deleteCache(it.attachments) }
+        }.ifTrue {
+            deleteCache(id)
+        }
     }
 
     override fun delete(test: Predicate<MemoItem>) = memoItems.filterValues { test.apply(it) }.
@@ -113,8 +113,11 @@ object CachedMemoDao : MemoDao {
                 crossMinus(old.attachments, item.attachments).let { (deleted, added) ->
                     insertAttachments(added, item.id)
                     deleteAttachments(deleted, item.id)
+
+                    AttachmentFileCache.cacheToFile(added)
+                    AttachmentFileCache.deleteCache(deleted)
                 }
-            }.also { res -> if (res) insertCache(item) }
+            }.ifTrue { insertCache(item) }
         } ?: false
     }
 
@@ -147,7 +150,7 @@ object CachedMemoDao : MemoDao {
             }.map {
                 it.attachments = select(tableOf<Attachment>(), "ROWID", "*").
                         parseList(rowParser { id: Long, _: Long, uri: String, type: String, content: String ->
-                            Attachment(Uri.parse(uri), content, type).apply { this.id = id }
+                            Attachment(Uri.parse(uri), content, type).apply { this.id = id;this.cacheState = CACHED }
                         }).toMutableList();it
             }.map { it.id to it }.let { mutableMapOf(*it.toTypedArray()) }
         }

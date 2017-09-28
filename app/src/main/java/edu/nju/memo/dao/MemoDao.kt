@@ -89,7 +89,7 @@ interface MemoDao {
     fun selectAll(): List<MemoItem>
 
     /**
-     * Refresh the cache
+     * Refresh the cacheToFile
      * */
     fun refresh(): MutableMap<Long, MemoItem>
 }

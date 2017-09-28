@@ -25,7 +25,7 @@ class MemoItem() {
     constructor(title: String?, content: String?, type: String) : this() {
         this.title = title.toNotBlank()
         this.content = content.toNotBlank()
-        this.type = type.takeIf { mimeMap.hasMimeType(type) } ?: "text/plain"
+        this.type = type
     }
 
     fun addAttachment(attachment: Attachment) = attachments.add(attachment)
@@ -40,7 +40,7 @@ class MemoItem() {
     fun removeTag(tag: String) = _tags.remove(tag)
 
     override fun toString() =
-            "MemoItem(id=$id, title='$title', content='$content', createTime=$createTime, isRead=$isRead, tags=$tags)"
+            "MemoItem(id=$id, title='$title',  type=$type, createTime=$createTime, isRead=$isRead, tags=$tags\n content='$content'\n attachments=$attachments)"
 
     fun trimmedAttachments() = attachments.apply { removeAll(Attachment::isEmpty) }
 }

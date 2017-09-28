@@ -3,6 +3,7 @@ package edu.nju.memo.common
 import android.content.Intent
 import android.util.Log
 import android.webkit.MimeTypeMap
+import edu.nju.memo.MainApplication
 import kotlin.coroutines.experimental.buildSequence
 
 /**
@@ -26,4 +27,11 @@ fun Any?.safeToString() = this?.toString() ?: ""
 
 fun String?.toNotBlank() = this.takeIf { !it.isNullOrBlank() } ?: ""
 
+fun Boolean.ifTrue(func: () -> Unit) = also { if (it) func() }
+
+fun <T> Iterable<T>.peek(func: (T) -> Unit) = apply { forEach { func(it) } }
+
 val mimeMap = MimeTypeMap.getSingleton()
+
+val application = MainApplication.APP
+
