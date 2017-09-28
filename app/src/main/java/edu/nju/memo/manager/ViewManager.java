@@ -5,13 +5,14 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-
+import android.widget.Toast;
 
 
 import java.lang.reflect.Field;
@@ -41,13 +42,22 @@ public class ViewManager {
 
     private Context context;
 
-    //私有化构造函数
+    private long pressTime;
+
+    private long upTime;
+
+
+
+    // 私有化构造函数
     private ViewManager(Context context) {
         this.context = context;
         init();
     }
 
     private void init() {
+        pressTime = 0;
+        upTime = 0;
+
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         clipboardManager=(ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
         floatBall = new FloatBall(context);
@@ -62,6 +72,7 @@ public class ViewManager {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        pressTime = System.currentTimeMillis();
                         startX = event.getRawX();
                         startY = event.getRawY();
 
@@ -81,6 +92,7 @@ public class ViewManager {
                         startY = event.getRawY();
                         break;
                     case MotionEvent.ACTION_UP:
+                        upTime = System.currentTimeMillis();
                         //判断松手时View的横坐标是靠近屏幕哪一侧，将View移动到依靠屏幕
                         float endX = event.getRawX();
                         float endY = event.getRawY();
@@ -108,9 +120,19 @@ public class ViewManager {
 
             @Override
             public void onClick(View v) {
-                windowManager.removeView(floatBall);
-                showFloatMenu();
-                floatMenu.startAnimation();
+                // 响应长按事件
+                if (upTime - pressTime > 1000) {
+                    windowManager.removeView(floatBall);
+                    showFloatMenu();
+                    floatMenu.startAnimation();
+                    pressTime = upTime;
+                }
+                // 响应点击事件
+                else {
+                    Toast.makeText(context, "Saved to default category", Toast.LENGTH_SHORT).show();
+                    pressTime = upTime;
+                }
+
             }
         };
         floatBall.setOnTouchListener(touchListener);
