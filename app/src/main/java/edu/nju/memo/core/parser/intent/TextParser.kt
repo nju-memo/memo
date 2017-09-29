@@ -12,7 +12,6 @@ import edu.nju.memo.domain.MemoItem
 /**
  * text/plain
  * */
-fun text(intent: Intent) = MemoItem(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT), "text/*")
+fun text(intent: Intent) = MemoItem(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT))
 
-fun image(intent: Intent) = MemoItem(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT), "image/*")
 

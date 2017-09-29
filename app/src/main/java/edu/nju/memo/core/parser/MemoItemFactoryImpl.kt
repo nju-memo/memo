@@ -4,7 +4,7 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Intent
 import android.os.Bundle
-import edu.nju.memo.common.iter
+import edu.nju.memo.common.sequence
 import edu.nju.memo.core.MemoItemFactory
 import edu.nju.memo.core.parser.clipdata.textHtml
 import edu.nju.memo.core.parser.clipdata.textIntentURI
@@ -35,8 +35,8 @@ object MemoItemFactoryImpl : MemoItemFactory {
                     let { wrapAttachment(it.removeAt(0)).apply { attachments = it } }.cacheToTemp()
 
     private fun getAttachments(data: ClipData) =
-            data.description.iter(data.itemCount, ClipDescription::getMimeType).
-                    zip(data.iter(data.itemCount, ClipData::getItemAt)).
+            data.description.sequence(data.itemCount, ClipDescription::getMimeType).
+                    zip(data.sequence(data.itemCount, ClipData::getItemAt)).
                     map { (type, item) -> chooseClipParser(type)(item) }.
                     toMutableList()
 
@@ -55,7 +55,7 @@ object MemoItemFactoryImpl : MemoItemFactory {
             apply { content = attachments[0].content;attachments.removeAt(0) } ?: item
 
     private fun wrapAttachment(attachment: Attachment) =
-            MemoItem(null, attachment.content, attachment.type).apply { addAttachment(attachment) }
+            MemoItem(null, attachment.content).apply { addAttachment(attachment) }
 
     private fun canMerge(item: MemoItem, attachment: Attachment) =
             attachment.type.startsWith("text/") && attachment.uri == null && (item.content.isEmpty() || attachment.content == item.content)

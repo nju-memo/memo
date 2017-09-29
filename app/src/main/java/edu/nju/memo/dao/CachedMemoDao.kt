@@ -137,8 +137,8 @@ object CachedMemoDao : MemoDao {
     override fun refresh() = synchronized(this) {
         db.use {
             select(tableOf<MemoItem>(), "ROWID", "*").parseList(
-                    rowParser { id: Long, title: String, content: String, createTime: Long, type: String, read: Int ->
-                        MemoItem(title, content, type).apply {
+                    rowParser { id: Long, title: String, content: String, createTime: Long, read: Int ->
+                        MemoItem(title, content).apply {
                             this.id = id
                             this.createTime = createTime
                             this.isRead = read != 0

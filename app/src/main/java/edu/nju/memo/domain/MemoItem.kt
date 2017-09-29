@@ -1,46 +1,73 @@
 package edu.nju.memo.domain
 
-import android.webkit.MimeTypeMap
-import edu.nju.memo.common.mimeMap
 import edu.nju.memo.common.toNotBlank
 
 /**
- * Created by tinker on 2017/9/19.
- */
-private val defaultList = listOf("默认")
-
+ * The core entity represents a memo item.
+ *
+ * This item itself only carry **one piece of plain text content**. Extra content or content with
+ * mime type of non-text/plain are all described by [Attachment].
+ *
+ * Detailed topic about attachment:
+ * * If a certain attachment has no [uri][Attachment.uri] && its [content][Attachment.content]
+ * equals to [item's content][MemoItem.content], it will be dropped. This is called `trim`.
+ * * If the first attachment's [type][Attachment.type] is `text/plain`(means it has no [uri][Attachment.uri]) &&
+ * [item's content][MemoItem.content] is absent, the attachment is dropped, meanwhile [item's content][MemoItem.content]
+ * is set as [Attachment.content].
+ * This is called `absorb`.
+ *
+ * See package-info.java for more details.
+ *
+ * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
+ * */
 class MemoItem() {
+    /**
+     * Row id in db.
+     * */
     var id = 0L
+    /**
+     * Title. Not null, empty when absent.
+     * */
     var title = ""
-    var type = "text/plain"
+    /**
+     * Content. Not null, empty when absent.
+     *
+     * This must be plain text, if only the third part app stand by the design guide.
+     * */
     var content = ""
+    /**
+     * Created time. Actually, instantiated time.
+     * */
     var createTime = System.currentTimeMillis()
+    /**
+     * Whether being read.
+     * Don't forget set this.
+     * */
     var isRead = false
+    /**
+     * Attachments. Refer to [Attachment] for detail.
+     * */
     var attachments = mutableListOf<Attachment>()
-    var _tags = mutableListOf<String>()
-    var tags
-        get() = if (_tags.isEmpty()) defaultList else _tags.toList()
-        set(value) = value.let { _tags = value.toMutableList() }
+    /**
+     * Tags.
+     * */
+    var tags = mutableListOf<String>()
 
-    constructor(title: String?, content: String?, type: String) : this() {
+    constructor(title: String?, content: String?) : this() {
         this.title = title.toNotBlank()
         this.content = content.toNotBlank()
-        this.type = type
     }
 
     fun addAttachment(attachment: Attachment) = attachments.add(attachment)
 
     fun removeAttachment(attachment: Attachment) = attachments.remove(attachment)
 
-    fun addTag(tag: String) {
-        if (_tags === defaultList) _tags = mutableListOf()
-        _tags.add(tag)
-    }
+    fun addTag(tag: String) = tags.add(tag)
 
-    fun removeTag(tag: String) = _tags.remove(tag)
+    fun removeTag(tag: String) = tags.remove(tag)
 
     override fun toString() =
-            "MemoItem(id=$id, title='$title',  type=$type, createTime=$createTime, isRead=$isRead, tags=$tags\n content='$content'\n attachments=$attachments)"
+            "MemoItem(id=$id, title='$title', createTime=$createTime, isRead=$isRead, tags=$tags\n content='$content'\n attachments=$attachments)"
 
     fun trimmedAttachments() = attachments.apply { removeAll(Attachment::isEmpty) }
 }

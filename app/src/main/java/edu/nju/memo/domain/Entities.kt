@@ -40,7 +40,6 @@ internal fun MemoItem.toNamedArray() = arrayOf(
         "TITLE" to title,
         "CONTENT" to content,
         "CREATE_TIME" to createTime,
-        "TYPE" to type,
         "READ" to isRead
 )
 

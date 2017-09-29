@@ -17,9 +17,9 @@ inline fun <reified T> T.warning(log: Any?) = Log.w(T::class.java.canonicalName,
 
 inline fun <reified T> T.asArr() = arrayOf(this)
 
-fun <T, R> T.iter(count: Int, getter: T.(Int) -> R) = buildSequence { for (i in 0 until count) yield(getter(i)) }
+fun <T, R> T.sequence(count: Int, getter: T.(Int) -> R) = buildSequence { for (i in 0 until count) yield(getter(i)) }
 
-fun <T, R> T.iter(getCount: T.() -> Int, getter: T.(Int) -> R) = this.iter(getCount(), getter)
+fun <T, R> T.sequence(getCount: T.() -> Int, getter: T.(Int) -> R) = this.sequence(getCount(), getter)
 
 inline fun <reified T> Intent.extra(key: String) = extras.get(key) as T
 

@@ -5,8 +5,8 @@ import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.MemoItem
 
 /**
- * Created by tinker on 2017/9/25.
- */
+* @autor [Cleveland Alto](mailto:tinker19981@hotmail.com)
+*/
 interface ClipDataParser {
     fun canParse(mimeType: String): Boolean
 
