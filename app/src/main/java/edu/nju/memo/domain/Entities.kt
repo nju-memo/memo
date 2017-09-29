@@ -20,7 +20,6 @@ internal val TABLES = mapOf(
                 "TITLE" to TEXT,
                 "CONTENT" to TEXT,
                 "CREATE_TIME" to INTEGER,
-                "TYPE" to TEXT,
                 "READ" to INTEGER),
         Attachment::class to arrayOf(
                 "IID" to INTEGER,

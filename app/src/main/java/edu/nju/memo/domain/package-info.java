@@ -11,12 +11,16 @@
  * <li>After modification or skipped, user confirms. Call MemoDao.insert to persist it.</li>
  * </ol>
  * </p>
- * Notice:
- * <ul>
- * <li>2.1 This instance is created according to info extracted from the parameter,
- * so it may not complete yet. See MemoItem's & Attachment's doc for detail.</li>
- * <li>2.2 If this item is concerned about images, they will be cached to a temp file during this step.</li>
- * <li>3.1 If this item is conc</li>
- * </ul>
+ * <p>
+ * Create a MemoItem manually:
+ * <ol>
+ * <li>User intends to create an item by himself.</li>
+ * <li>Create an instance via constructor. It's totally empty now. Show it on screen.</li>
+ * <li>User customizes it and confirms.</li>
+ * <li>Set MemoItem's fields as well as create attachments if necessary. Call MemoDao.insert.</li>
+ * </ol>
+ * </p>
+ * <p>
+ * Refer to MemoItem and Attachment for details.
  */
 package edu.nju.memo.domain;

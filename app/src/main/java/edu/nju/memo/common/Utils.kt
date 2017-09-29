@@ -31,6 +31,7 @@ fun Boolean.ifTrue(func: () -> Unit) = also { if (it) func() }
 
 fun <T> Iterable<T>.peek(func: (T) -> Unit) = apply { forEach { func(it) } }
 
+fun <T, R> T.letIf(predication: Boolean, func: (T) -> R) = if (predication) func(this) else null
 val mimeMap = MimeTypeMap.getSingleton()
 
 val application = MainApplication.APP

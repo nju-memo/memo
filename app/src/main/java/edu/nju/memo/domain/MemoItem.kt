@@ -70,4 +70,14 @@ class MemoItem() {
             "MemoItem(id=$id, title='$title', createTime=$createTime, isRead=$isRead, tags=$tags\n content='$content'\n attachments=$attachments)"
 
     fun trimmedAttachments() = attachments.apply { removeAll(Attachment::isEmpty) }
+
+    fun copy(): MemoItem {
+        val item = MemoItem(title, content)
+        item.id = id
+        item.createTime = createTime
+        item.attachments = attachments.toMutableList()
+        item.tags = tags.toMutableList()
+        item.isRead = isRead
+        return item
+    }
 }

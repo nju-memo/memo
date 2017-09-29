@@ -7,8 +7,9 @@ import edu.nju.memo.common.safeToString
 import edu.nju.memo.domain.Attachment
 
 /**
- * Created by tinker on 2017/9/25.
+ * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
  */
+
 fun textUriList(item: ClipData.Item) = Attachment(item.uri, item.text.safeToString(), "text/uri-list")
 
 fun textPlain(item: ClipData.Item) = Attachment(null, item.text.safeToString(), "text/plain")

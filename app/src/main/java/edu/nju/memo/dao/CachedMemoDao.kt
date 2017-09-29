@@ -28,38 +28,37 @@ object CachedMemoDao : MemoDao {
     private val memoItems by lazy { refresh() }
 
     private fun insertCache(item: MemoItem) {
-        memoItems[item.id] = item
+        memoItems[item.id] = item.copy()
     }
 
-    private fun deleteCache(id: Long) = memoItems.remove(id)
-
-    private fun insertMemoItem(item: MemoItem) = db.use {
-        insert(tableOf<MemoItem>(), *item.toNamedArray()).
-                takeIf { it != -1L } ?: throw SQLiteException("Failed to insert")
+    private fun deleteCache(id: Long) {
+        select(id)?.let { AttachmentFileCache.deleteCache(it.attachments) }
+        memoItems.remove(id)
     }
 
-    private fun insertAttachments(attachments: List<Attachment>, itemId: Long) = db.use {
-        attachments.peek { attachment ->
-            insert(tableOf<Attachment>(), *attachment.toNamedArray(), "IID" to itemId).
-                    takeIf { it != -1L }?.
-                    let { attachment.id = it } ?: throw SQLiteException("Failed to insert")
-        }.let { AttachmentFileCache.cacheToFile(attachments) }
-    }
+    private fun SQLiteDatabase.insertMemoItem(item: MemoItem) =
+            insert(tableOf<MemoItem>(), *item.toNamedArray()).takeIf { it != -1L }
+                    ?: throw SQLiteException("Failed to insert")
 
-    private fun insertTags(tags: List<String>, itemId: Long) = db.use {
-        tags.filter { -1L == insert(tableOf<String>(), "TAG" to it, "IID" to itemId) }.
-                forEach { throw SQLiteException("Failed to insert") }
-    }
+    private fun SQLiteDatabase.insertAttachments(attachments: List<Attachment>, itemId: Long) =
+            attachments.map { attachment ->
+                attachment.apply {
+                    id = insert(tableOf<Attachment>(), "IID" to itemId, *attachment.toNamedArray()).
+                            takeIf { -1L != it } ?: throw SQLiteException("Failed to insert")
+                }
+            }.let { AttachmentFileCache.cacheToFile(it) }
 
-    private fun deleteAttachments(attachments: List<Attachment>, itemId: Long) = db.use {
-        attachments.peek {
-            delete(tableOf<Attachment>(), "ROWID=${it.id} AND IID=$itemId")
-        }.let { AttachmentFileCache.deleteCache(it) }
-    }
+    private fun SQLiteDatabase.insertTags(tags: List<String>, itemId: Long) =
+            tags.filter { -1L == insert(tableOf<String>(), "TAG" to it, "IID" to itemId) }.
+                    forEach { throw SQLiteException("Failed to insert") }
 
-    private fun deleteTags(tags: List<String>, itemId: Long) = db.use {
-        tags.forEach { delete(tableOf<String>(), "TAG=$it AND IID=$itemId") }
-    }
+    private fun SQLiteDatabase.deleteAttachments(attachments: List<Attachment>, itemId: Long) =
+            attachments.peek {
+                delete(tableOf<Attachment>(), "ROWID=${it.id} AND IID=$itemId")
+            }.let { AttachmentFileCache.deleteCache(it) }
+
+    private fun SQLiteDatabase.deleteTags(tags: List<String>, itemId: Long) =
+            tags.forEach { delete(tableOf<String>(), "TAG=$it AND IID=$itemId") }
 
     private fun <T> crossMinus(c0: Collection<T>, c1: Collection<T>) = (c0 - c1) to (c1 - c0)
 
@@ -78,46 +77,42 @@ object CachedMemoDao : MemoDao {
         }
     }
 
-    override fun insert(item: MemoItem) = db.use {
-        withTx {
-            insertMemoItem(item).let { id ->
-                insertTags(item.tags, id)
-                insertAttachments(item.attachments, id)
-                item.id = id
-            }
-        }.ifTrue { insertCache(item) }
-    }
+    override fun insert(item: MemoItem) = AttachmentFileCache.cacheToFile(item.attachments) &&
+            db.use {
+                withTx {
+                    item.id = insertMemoItem(item).
+                            also { id -> insertTags(item.tags, id); insertAttachments(item.attachments, id) }
+                }
+            }.ifTrue { insertCache(item) } // add to cache after all
 
     override fun delete(id: Long) = db.use {
         withTx {
             delete(tableOf<MemoItem>(), "ROWID = $id")
             delete(tableOf<Attachment>(), "IID = $id")
             delete(tableOf<String>(), "IID = $id")
-            select(id)?.let { AttachmentFileCache.deleteCache(it.attachments) }
-        }.ifTrue {
-            deleteCache(id)
         }
-    }
+    }.ifTrue { deleteCache(id) } // delete cache after all
 
     override fun delete(test: Predicate<MemoItem>) = memoItems.filterValues { test.apply(it) }.
             filterKeys { delete(it) }.map { (_, v) -> v }
 
     override fun update(item: MemoItem) = db.use {
         select(item.id)?.let { old ->
-            withTx {
-                update(tableOf<MemoItem>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
-                crossMinus(old.tags, item.tags).let { (deleted, added) ->
-                    deleteTags(deleted, item.id)
-                    insertTags(added, item.id)
-                }
-                crossMinus(old.attachments, item.attachments).let { (deleted, added) ->
-                    insertAttachments(added, item.id)
-                    deleteAttachments(deleted, item.id)
-
-                    AttachmentFileCache.cacheToFile(added)
-                    AttachmentFileCache.deleteCache(deleted)
-                }
-            }.ifTrue { insertCache(item) }
+            crossMinus(old.attachments, item.attachments).let { (deletedAttachment, addedAttachment) ->
+                // create cache at first
+                AttachmentFileCache.cacheToFile(addedAttachment)
+                        && withTx {
+                    insertAttachments(addedAttachment, item.id)
+                    deleteAttachments(deletedAttachment, item.id)
+                    crossMinus(old.tags, item.tags).let { (deletedTags, addedTags) ->
+                        insertTags(addedTags, item.id)
+                        deleteTags(deletedTags, item.id)
+                    }
+                    update(tableOf<MemoItem>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
+                } // and delete cache at last to make risk least
+                        // result of deleting cache doesn't matter. If we reach here, return true anyway
+                        && (AttachmentFileCache.deleteCache(deletedAttachment) || true)
+            }.ifTrue { insertCache(item) } // update the cache after all
         } ?: false
     }
 

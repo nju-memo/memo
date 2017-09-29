@@ -56,6 +56,26 @@ class Attachment() {
     override fun toString() = "Attachment(id=$id, uri=$uri, type=$type, content='$content')\n"
 
     fun isEmpty() = uri == null && content.isEmpty()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Attachment
+
+        if (uri != other.uri) return false
+        if (content != other.content) return false
+        if (type != other.type) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = uri?.hashCode() ?: 0
+        result = 31 * result + content.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
 }
 
 val NO_NEED_CACHE = 0
