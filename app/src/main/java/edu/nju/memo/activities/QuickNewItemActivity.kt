@@ -20,16 +20,13 @@ import org.jetbrains.anko.toast
 import java.io.File
 import java.net.URI
 
+/**
+ * For development test.
+ * */
 class QuickNewItemActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quick_new_item)
-        // 测试分享收到的intent的内容
-        // 目前的结论:
-        // 首先根据mimetype分类
-        // 对于text/*
-        // 首先遍历intent.clipData, 每一项如果有uri就存， 有text就存
-        // 这里没有text的话就拿EXTRA_TEXT[Intent.EXTRA_TEXT]
         val item = MemoItemFactoryImpl.getMemoItem(intent)
         CachedMemoDao.insert(item)
 
