@@ -5,22 +5,22 @@ import edu.nju.memo.common.toNotBlank
 /**
  * The core entity represents a memo item.
  *
- * This item itself only carry **one piece of plain text content**. Extra content or content with
+ * This item itself only carry **one piece of plain text summary**. Extra summary or summary with
  * mime type of non-text/plain are all described by [Attachment].
  *
  * Detailed topic about attachment:
- * * If a certain attachment has no [uri][Attachment.uri] && its [content][Attachment.content]
- * equals to [item's content][MemoItem.content], it will be dropped. This is called `trim`.
+ * * If a certain attachment has no [uri][Attachment.uri] && its [summary][Attachment.text]
+ * equals to [item's summary][Memo.summary], it will be dropped. This is called `trim`.
  * * If the first attachment's [type][Attachment.type] is `text/plain`(means it has no [uri][Attachment.uri]) &&
- * [item's content][MemoItem.content] is absent, the attachment is dropped, meanwhile [item's content][MemoItem.content]
- * is set as [Attachment.content].
+ * [item's summary][Memo.summary] is absent, the attachment is dropped, meanwhile [item's summary][Memo.summary]
+ * is set as [Attachment.text].
  * This is called `absorb`.
  *
  * See package-info.java for more details.
  *
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
  * */
-class MemoItem() {
+class Memo() {
     /**
      * Row id in db.
      * */
@@ -34,7 +34,7 @@ class MemoItem() {
      *
      * This must be plain text, if only the third part app stand by the design guide.
      * */
-    var content = ""
+    var summary = ""
     /**
      * Created time. Actually, instantiated time.
      * */
@@ -55,7 +55,7 @@ class MemoItem() {
 
     constructor(title: String?, content: String?) : this() {
         this.title = title.toNotBlank()
-        this.content = content.toNotBlank()
+        this.summary = content.toNotBlank()
     }
 
     fun addAttachment(attachment: Attachment) = attachments.add(attachment)
@@ -67,12 +67,12 @@ class MemoItem() {
     fun removeTag(tag: String) = tags.remove(tag)
 
     override fun toString() =
-            "MemoItem(id=$id, title='$title', createTime=$createTime, isRead=$isRead, tags=$tags\n content='$content'\n attachments=$attachments)"
+            "Memo(id=$id, title='$title', createTime=$createTime, isRead=$isRead, tags=$tags\n summary='$summary'\n attachments=$attachments)"
 
     fun trimmedAttachments() = attachments.apply { removeAll(Attachment::isEmpty) }
 
-    fun copy(): MemoItem {
-        val item = MemoItem(title, content)
+    fun copy(): Memo {
+        val item = Memo(title, summary)
         item.id = id
         item.createTime = createTime
         item.attachments = attachments.toMutableList()

@@ -6,7 +6,7 @@ import edu.nju.memo.common.toNotBlank
 import edu.nju.memo.dao.AttachmentCache
 
 /**
- * Class describes the extra attached content of the MemoItem.
+ * Class describes the extra attached summary of the Memo.
  */
 class Attachment() {
     /**
@@ -14,7 +14,7 @@ class Attachment() {
      * */
     var id = 0L
     /**
-     * Uri of non-text content.
+     * Uri of non-text summary.
      *
      * This uri is initially from outer. Then it will be cached as a temp file through [AttachmentCache].
      * The [uri] is set to the temp file's uri simultaneously.
@@ -25,22 +25,22 @@ class Attachment() {
      * */
     var uri: Uri? = null
     /**
-     * Text(plain, html...) content. Not null, empty when absent.
+     * Text(plain, html...) summary. Not null, empty when absent.
      *
      * (just use WebView)
      * */
-    var content = ""
+    var text = ""
     /**
      * Type.
      *
-     * If [uri] is not null, then the type is [uri]'s type. But this doesn't indicate the [content]
+     * If [uri] is not null, then the type is [uri]'s type. But this doesn't indicate the [text]
      * is absent.
      *
-     * If [uri] is absent, this represents [content]'s type
+     * If [uri] is absent, this represents [text]'s type
      * */
     var type = "text/plain"
     /**
-     * Indicate should cache content from [uri] or not.
+     * Indicate should cache summary from [uri] or not.
      *
      * If [uri] is modified after created via [MemoItemFactory], or initially created manually, please
      * also set this field properly. In detail, if the uri is temporary or expires later, set it to [NOT_CACHED].
@@ -49,13 +49,13 @@ class Attachment() {
 
     constructor(uri: Uri?, content: String?, type: String) : this() {
         this.uri = uri
-        this.content = content.toNotBlank()
+        this.text = content.toNotBlank()
         this.type = type
     }
 
-    override fun toString() = "Attachment(id=$id, uri=$uri, type=$type, content='$content')\n"
+    override fun toString() = "Attachment(id=$id, uri=$uri, type=$type, summary='$text')\n"
 
-    fun isEmpty() = uri == null && content.isEmpty()
+    fun isEmpty() = uri == null && text.isEmpty()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -64,7 +64,7 @@ class Attachment() {
         other as Attachment
 
         if (uri != other.uri) return false
-        if (content != other.content) return false
+        if (text != other.text) return false
         if (type != other.type) return false
 
         return true
@@ -72,7 +72,7 @@ class Attachment() {
 
     override fun hashCode(): Int {
         var result = uri?.hashCode() ?: 0
-        result = 31 * result + content.hashCode()
+        result = 31 * result + text.hashCode()
         result = 31 * result + type.hashCode()
         return result
     }

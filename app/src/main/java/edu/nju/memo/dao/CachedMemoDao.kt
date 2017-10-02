@@ -11,7 +11,6 @@ import edu.nju.memo.common.peek
 import edu.nju.memo.common.warning
 import edu.nju.memo.domain.*
 import org.jetbrains.anko.db.*
-import java.io.IOException
 
 object CachedMemoDao : MemoDao {
     private val db by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -27,7 +26,7 @@ object CachedMemoDao : MemoDao {
     }
     private val memoItems by lazy { refresh() }
 
-    private fun insertCache(item: MemoItem) {
+    private fun insertCache(item: Memo) {
         memoItems[item.id] = item.copy()
     }
 
@@ -36,8 +35,8 @@ object CachedMemoDao : MemoDao {
         memoItems.remove(id)
     }
 
-    private fun SQLiteDatabase.insertMemoItem(item: MemoItem) =
-            insert(tableOf<MemoItem>(), *item.toNamedArray()).takeIf { it != -1L }
+    private fun SQLiteDatabase.insertMemoItem(item: Memo) =
+            insert(tableOf<Memo>(), *item.toNamedArray()).takeIf { it != -1L }
                     ?: throw SQLiteException("Failed to insert")
 
     private fun SQLiteDatabase.insertAttachments(attachments: List<Attachment>, itemId: Long) =
@@ -77,7 +76,7 @@ object CachedMemoDao : MemoDao {
         }
     }
 
-    override fun insert(item: MemoItem) = AttachmentFileCache.cacheToFile(item.attachments) &&
+    override fun insert(item: Memo) = AttachmentFileCache.cacheToFile(item.attachments) &&
             db.use {
                 withTx {
                     item.id = insertMemoItem(item).
@@ -87,16 +86,16 @@ object CachedMemoDao : MemoDao {
 
     override fun delete(id: Long) = db.use {
         withTx {
-            delete(tableOf<MemoItem>(), "ROWID = $id")
+            delete(tableOf<Memo>(), "ROWID = $id")
             delete(tableOf<Attachment>(), "IID = $id")
             delete(tableOf<String>(), "IID = $id")
         }
     }.ifTrue { deleteCache(id) } // delete cache after all
 
-    override fun delete(test: Predicate<MemoItem>) = memoItems.filterValues { test.apply(it) }.
+    override fun delete(test: Predicate<Memo>) = memoItems.filterValues { test.apply(it) }.
             filterKeys { delete(it) }.map { (_, v) -> v }
 
-    override fun update(item: MemoItem) = db.use {
+    override fun update(item: Memo) = db.use {
         select(item.id)?.let { old ->
             crossMinus(old.attachments, item.attachments).let { (deletedAttachment, addedAttachment) ->
                 // create cache at first
@@ -108,7 +107,7 @@ object CachedMemoDao : MemoDao {
                         insertTags(addedTags, item.id)
                         deleteTags(deletedTags, item.id)
                     }
-                    update(tableOf<MemoItem>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
+                    update(tableOf<Memo>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
                 } // and delete cache at last to make risk least
                         // result of deleting cache doesn't matter. If we reach here, return true anyway
                         && (AttachmentFileCache.deleteCache(deletedAttachment) || true)
@@ -116,24 +115,24 @@ object CachedMemoDao : MemoDao {
         } ?: false
     }
 
-    override fun update(test: Predicate<MemoItem>, func: Function<MemoItem, MemoItem>) =
+    override fun update(test: Predicate<Memo>, func: Function<Memo, Memo>) =
             select(test).map { func.apply(it) }.filter { update(it) }
 
-    override fun updateOrInsert(item: MemoItem) = db.use {
+    override fun updateOrInsert(item: Memo) = db.use {
         (!update(item)) && insert(item) // short circuit, when update fails try insert
     }
 
     override fun select(id: Long) = memoItems[id]
 
-    override fun select(test: Predicate<MemoItem>) = memoItems.filterValues { test.apply(it) }.map { (_, v) -> v }
+    override fun select(test: Predicate<Memo>) = memoItems.filterValues { test.apply(it) }.map { (_, v) -> v }
 
     override fun selectAll() = memoItems.values.toList()
 
     override fun refresh() = synchronized(this) {
         db.use {
-            select(tableOf<MemoItem>(), "ROWID", "*").parseList(
+            select(tableOf<Memo>(), "ROWID", "*").parseList(
                     rowParser { id: Long, title: String, content: String, createTime: Long, read: Int ->
-                        MemoItem(title, content).apply {
+                        Memo(title, content).apply {
                             this.id = id
                             this.createTime = createTime
                             this.isRead = read != 0

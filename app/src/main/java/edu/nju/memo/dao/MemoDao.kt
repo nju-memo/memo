@@ -2,10 +2,10 @@ package edu.nju.memo.dao
 
 import com.android.internal.util.Predicate
 import edu.nju.memo.common.Function
-import edu.nju.memo.domain.MemoItem
+import edu.nju.memo.domain.Memo
 
 /**
- * Dao to manipulate MemoItem, tag and attachment cascades
+ * Dao to manipulate Memo, tag and attachment cascades
  *
  * Created by tinker on 2017/9/22.
  */
@@ -18,7 +18,7 @@ interface MemoDao {
      * @param item new item
      * @return operation's result, the item's id field will be set as well
      * */
-    fun insert(item: MemoItem): Boolean
+    fun insert(item: Memo): Boolean
 
     /**
      * Delete by id.
@@ -34,7 +34,7 @@ interface MemoDao {
      * @param test condition to test items, deleted if result is true
      * @return items has been removed
      * */
-    fun delete(test: Predicate<MemoItem>): List<MemoItem>
+    fun delete(test: Predicate<Memo>): List<Memo>
 
     /**
      * Update an item.
@@ -44,7 +44,7 @@ interface MemoDao {
      * @param item
      * @return operation's result. false if given id doesn't exist, or the update itself fails
      * */
-    fun update(item: MemoItem): Boolean
+    fun update(item: Memo): Boolean
 
     /**
      * Update item specified by `test` result, set their values through `func`
@@ -55,7 +55,7 @@ interface MemoDao {
      * @return items has been updated successfully
      * @see Function
      * */
-    fun update(test: Predicate<MemoItem>, func: Function<MemoItem, MemoItem>): List<MemoItem>
+    fun update(test: Predicate<Memo>, func: Function<Memo, Memo>): List<Memo>
 
     /**
      * Update an item if exists, insert it otherwise.
@@ -63,7 +63,7 @@ interface MemoDao {
      * @param item
      * @return operation's result
      * */
-    fun updateOrInsert(item: MemoItem): Boolean
+    fun updateOrInsert(item: Memo): Boolean
 
     /**
      * Select an item by id.
@@ -71,7 +71,7 @@ interface MemoDao {
      * @param id
      * @return item
      * */
-    fun select(id: Long): MemoItem?
+    fun select(id: Long): Memo?
 
     /**
      * Select items by criteria specified by `test`
@@ -79,17 +79,17 @@ interface MemoDao {
      * @param test criteria to test items
      * @return selected items
      * */
-    fun select(test: Predicate<MemoItem>): List<MemoItem>
+    fun select(test: Predicate<Memo>): List<Memo>
 
     /**
      * Get all items
      *
      * @return all items
      * */
-    fun selectAll(): List<MemoItem>
+    fun selectAll(): List<Memo>
 
     /**
      * Refresh the cacheToFile
      * */
-    fun refresh(): MutableMap<Long, MemoItem>
+    fun refresh(): MutableMap<Long, Memo>
 }

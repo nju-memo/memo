@@ -1,8 +1,6 @@
 package edu.nju.memo.domain
 
-import android.content.ContentValues
 import org.jetbrains.anko.db.*
-import kotlin.reflect.KClass
 
 /**
  * Created by tinker on 2017/9/20.
@@ -11,12 +9,12 @@ import kotlin.reflect.KClass
 internal val ENTITIES = arrayOf("MEMOITEM_T", "ATTACHMENT_T", "TAG_T")
 internal val CLASSES = mapOf(
         Attachment::class to "ATTACHMENT_T",
-        MemoItem::class to "MEMOITEM_T",
+        Memo::class to "MEMOITEM_T",
         String::class to "TAG_T"
 )
 
 internal val TABLES = mapOf(
-        MemoItem::class to arrayOf(
+        Memo::class to arrayOf(
                 "TITLE" to TEXT,
                 "CONTENT" to TEXT,
                 "CREATE_TIME" to INTEGER,
@@ -35,9 +33,9 @@ inline internal fun <reified T> tableOf() = CLASSES[T::class]!!
 
 inline internal fun <reified T> fieldsOf() = TABLES[T::class]!!
 
-internal fun MemoItem.toNamedArray() = arrayOf(
+internal fun Memo.toNamedArray() = arrayOf(
         "TITLE" to title,
-        "CONTENT" to content,
+        "CONTENT" to summary,
         "CREATE_TIME" to createTime,
         "READ" to isRead
 )
@@ -45,5 +43,5 @@ internal fun MemoItem.toNamedArray() = arrayOf(
 internal fun Attachment.toNamedArray() = arrayOf(
         "URI" to uri.toString(),
         "TYPE" to type,
-        "CONTENT" to content
+        "CONTENT" to text
 )
