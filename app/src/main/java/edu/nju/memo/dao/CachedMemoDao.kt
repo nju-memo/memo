@@ -59,8 +59,6 @@ object CachedMemoDao : MemoDao {
     private fun SQLiteDatabase.deleteTags(tags: List<String>, itemId: Long) =
             tags.forEach { delete(tableOf<String>(), "TAG=$it AND IID=$itemId") }
 
-    private fun <T> crossMinus(c0: Collection<T>, c1: Collection<T>) = (c0 - c1) to (c1 - c0)
-
     private fun SQLiteDatabase.withTx(code: SQLiteDatabase.() -> Unit): Boolean {
         var res = false
         try {
@@ -96,24 +94,20 @@ object CachedMemoDao : MemoDao {
             filterKeys { delete(it) }.map { (_, v) -> v }
 
     override fun update(item: Memo) = db.use {
-        select(item.id)?.let { old ->
-            crossMinus(old.attachments, item.attachments).let { (deletedAttachment, addedAttachment) ->
-                // create cache at first
-                AttachmentFileCache.cacheToFile(addedAttachment)
-                        && withTx {
-                    insertAttachments(addedAttachment, item.id)
-                    deleteAttachments(deletedAttachment, item.id)
-                    crossMinus(old.tags, item.tags).let { (deletedTags, addedTags) ->
-                        insertTags(addedTags, item.id)
-                        deleteTags(deletedTags, item.id)
-                    }
-                    update(tableOf<Memo>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
-                } // and delete cache at last to make risk least
-                        // result of deleting cache doesn't matter. If we reach here, return true anyway
-                        && (AttachmentFileCache.deleteCache(deletedAttachment) || true)
-            }.ifTrue { insertCache(item) } // update the cache after all
-        } ?: false
-    }
+        (item to select(item.id)).takeIf { it.second != null }?.let { (new, old) ->
+            AttachmentFileCache.cacheToFile(new.attachments - old!!.attachments) // create cache at first
+                    && withTx {
+                // delete entirely to keep attachment's order correct
+                deleteAttachments(old.attachments, item.id)
+                insertAttachments(new.attachments, item.id)
+                deleteTags(old.tags - new.tags, item.id)
+                insertTags(new.tags - old.tags, item.id)
+                update(tableOf<Memo>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
+            } // and delete cache at last to minimize risk. The result doesn't matter.
+                    // If we reach here, return true anyway
+                    && (AttachmentFileCache.deleteCache(old.attachments - new.attachments) || true)
+        }?.ifTrue { insertCache(item) } // update the cache after all
+    } ?: false
 
     override fun update(test: Predicate<Memo>, func: Function<Memo, Memo>) =
             select(test).map { func.apply(it) }.filter { update(it) }
