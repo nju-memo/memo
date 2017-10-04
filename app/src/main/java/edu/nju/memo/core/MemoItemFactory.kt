@@ -26,7 +26,7 @@ interface MemoItemFactory {
     /**
      * Build a Memo from a ClipData.
      *
-     * Conversion is based on the mime type. See [ClipDescription] for more info.
+     * Conversion is based on the mime uriType. See [ClipDescription] for more info.
      *
      * @param data a ClipData
      * @return corresponding Memo

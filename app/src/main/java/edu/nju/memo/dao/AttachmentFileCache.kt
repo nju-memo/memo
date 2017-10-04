@@ -31,7 +31,7 @@ object AttachmentFileCache : AttachmentCache {
     override fun cacheToFile(attachments: Iterable<Attachment>) =
             attachments.takeIf { cacheToTemp(it) }?.
                     filter { it.cacheState == TEMP_CAHCED }?.
-                    map { File(URI(it.uri.safeToString())) to it }?.
+                    map { it.uri.toFile() to it }?.
                     all { (file, attachment) ->
                         moveFile(file, fileDir).ifTrue {
                             attachment.cacheState = CACHED

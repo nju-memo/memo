@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">稍后再看</string>
+    <string name="hint_title">标题</string>
+    <string name="hint_summary">摘要</string>
+    <string name="hint_content">内容……</string>
+    <string name="desc_add_image">添加图片</string>
+    <string name="desc_image">image</string>
 </resources>

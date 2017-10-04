@@ -133,10 +133,10 @@ object CachedMemoDao : MemoDao {
                         }
                     }
             ).map {
-                it.tags = select(tableOf<String>(), "TAG").
+                it.tags = select(tableOf<String>(), "TAG").where("IID = ${it.id}").
                         parseList(rowParser { tag: String -> tag }).toMutableList();it
             }.map {
-                it.attachments = select(tableOf<Attachment>(), "ROWID", "*").
+                it.attachments = select(tableOf<Attachment>(), "ROWID", "*").where("IID = ${it.id}").
                         parseList(rowParser { id: Long, _: Long, uri: String, type: String, content: String ->
                             Attachment(Uri.parse(uri), content, type).apply { this.id = id;this.cacheState = CACHED }
                         }).toMutableList();it

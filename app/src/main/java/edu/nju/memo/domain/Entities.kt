@@ -6,10 +6,10 @@ import org.jetbrains.anko.db.*
  * Created by tinker on 2017/9/20.
  */
 
-internal val ENTITIES = arrayOf("MEMOITEM_T", "ATTACHMENT_T", "TAG_T")
+internal val ENTITIES = arrayOf("MEMO_T", "ATTACHMENT_T", "TAG_T")
 internal val CLASSES = mapOf(
         Attachment::class to "ATTACHMENT_T",
-        Memo::class to "MEMOITEM_T",
+        Memo::class to "MEMO_T",
         String::class to "TAG_T"
 )
 
@@ -42,6 +42,6 @@ internal fun Memo.toNamedArray() = arrayOf(
 
 internal fun Attachment.toNamedArray() = arrayOf(
         "URI" to uri.toString(),
-        "TYPE" to type,
+        "TYPE" to uriType,
         "CONTENT" to text
 )

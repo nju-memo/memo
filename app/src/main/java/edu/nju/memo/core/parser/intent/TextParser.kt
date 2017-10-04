@@ -5,11 +5,11 @@ import edu.nju.memo.common.extra
 import edu.nju.memo.domain.Memo
 
 /**
- * Parser of Memo for text/`*`
+ * Parser of Memo for textView/`*`
  */
 
 /**
- * text/plain
+ * textView/plain
  * */
 fun text(intent: Intent) = Memo(intent.extra(Intent.EXTRA_SUBJECT), intent.extra(Intent.EXTRA_TEXT))
 

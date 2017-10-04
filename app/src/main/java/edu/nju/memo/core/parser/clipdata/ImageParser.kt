@@ -9,5 +9,5 @@ import edu.nju.memo.domain.NOT_CACHED
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
  */
 
-fun image(item: ClipData.Item) = Attachment(item.uri, item.text.safeToString(), "image/*")
+fun image(item: ClipData.Item) = Attachment(item.uri, item.text.safeToString(), "imageView/*")
         .apply { cacheState = NOT_CACHED }

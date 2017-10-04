@@ -12,7 +12,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleInstance">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,6 +24,12 @@
         <service
             android:name=".service.StartFloatBallService"
             android:enabled="true" />
+
+        <activity
+            android:theme="@style/AppTheme"
+            android:name=".activities.MemoDetailActivity"
+            android:launchMode="singleTask"
+            android:parentActivityName=".MainActivity" />
 
         <activity android:name=".activities.QuickNewItemActivity">
             <intent-filter>
