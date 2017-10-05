@@ -5,4 +5,5 @@
     <string name="hint_content">内容……</string>
     <string name="desc_add_image">添加图片</string>
     <string name="desc_image">image</string>
+    <string name="text_no_summary">无摘要</string>
 </resources>

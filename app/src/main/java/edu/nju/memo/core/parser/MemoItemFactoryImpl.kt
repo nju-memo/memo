@@ -44,7 +44,7 @@ object MemoItemFactoryImpl : MemoItemFactory {
     private fun vendorHack(item: Memo, extra: Bundle): Memo {
         if (FROM_CHROME in extra.keySet())
             item.attachments[0].let {
-                it.uriType = "imageView/*"
+                it.uriType = "image/*"
                 it.cacheState = NOT_CACHED
             }
         return item
@@ -61,14 +61,14 @@ object MemoItemFactoryImpl : MemoItemFactory {
             attachments.
                     takeIf { attachments.isNotEmpty() }?.
                     let {
-                        (if (it[0].uriType == "textView/plain") Memo(null, it.removeAt(0).text) else Memo())
+                        (if (it[0].uriType == "text/plain") Memo(null, it.removeAt(0).text) else Memo())
                                 .apply { this.attachments = it }
                     } ?: Memo()
 
     private fun canMerge(item: Memo, attachment: Attachment) =
             // attachment's uri is null and attachment's uriType is textView/*
             // item's summary is empty or equals attachment's summary
-            attachment.uri == null && attachment.uriType.startsWith("textView/")
+            attachment.uri == null && attachment.uriType.startsWith("text/")
                     && (item.summary.isEmpty() || item.summary == attachment.text)
 
     private fun chooseIntentParser(type: String) = intentParsers.getValue(type.split('/')[0])
@@ -76,8 +76,8 @@ object MemoItemFactoryImpl : MemoItemFactory {
     private fun chooseClipParser(type: String) = clipDataParsers[type] ?: clipDataParsers.getValue(type.split('/')[0])
 
     private val intentParsers = mapOf<String, (Intent) -> Memo>(
-            "textView" to ::text,
-            "imageView" to ::image
+            "text" to ::text,
+            "image" to ::image
     ).withDefault { { _: Intent -> Memo() } }
 
     private val clipDataParsers = mapOf<String, (ClipData.Item) -> Attachment>(
@@ -85,7 +85,7 @@ object MemoItemFactoryImpl : MemoItemFactory {
             ClipDescription.MIMETYPE_TEXT_HTML to ::textHtml,
             ClipDescription.MIMETYPE_TEXT_PLAIN to ::textPlain,
             ClipDescription.MIMETYPE_TEXT_INTENT to ::textIntentURI,
-            "imageView" to ::image
+            "image" to ::image
     ).withDefault { { _: ClipData.Item -> Attachment() } }
 
     private val FROM_CHROME = "org.chromium.chrome.extra.TASK_ID"

@@ -2,29 +2,33 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/layout_appbar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/appbar_height"
-        android:background="@color/colorPrimary">
+        android:background="@color/colorPrimary"
+        android:fitsSystemWindows="true">
 
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/layout_collapsing"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="-5dp"
+            android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
+            android:minHeight="?actionBarSize"
             app:collapsedTitleTextAppearance="@style/CollapsedTitleTextAppearance"
             app:expandedTitleMarginStart="20dp"
             app:expandedTitleTextAppearance="@style/ExpandedTitleTextAppearance"
-            app:layout_scrollFlags="scroll|enterAlwaysCollapsed">
+            app:layout_scrollFlags="scroll|snap|enterAlwaysCollapsed|exitUntilCollapsed"
+            app:scrimAnimationDuration="300"
+            app:titleEnabled="false">
 
             <ImageView
                 android:id="@+id/view_image_header"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:contentDescription="@string/desc_image"
                 android:fitsSystemWindows="true"
                 android:scaleType="centerCrop"
@@ -35,46 +39,28 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/toolbar_height"
-                app:layout_collapseMode="pin" />
+                android:layout_gravity="bottom"
+                android:background="@color/transparent"
+                app:layout_collapseMode="pin">
+
+                <EditText
+                    android:id="@+id/edit_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginStart="12dp"
+                    android:ellipsize="end"
+                    android:hint="@string/hint_title"
+                    android:inputType="text"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:textColorLink="@color/white"
+                    android:textSize="24sp"
+                    app:theme="@style/CustomizedEditText" />
+
+            </android.support.v7.widget.Toolbar>
+
         </android.support.design.widget.CollapsingToolbarLayout>
-
-        <!--<LinearLayout-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:orientation="vertical"-->
-        <!--app:layout_scrollFlags="scroll|enterAlways|exitUntilCollapsed">-->
-
-
-        <!--<EditText-->
-        <!--android:id="@+id/edit_title"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginLeft="8dp"-->
-        <!--android:layout_marginRight="8dp"-->
-        <!--android:hint="@string/hint_title"-->
-        <!--android:inputType="textMultiLine"-->
-        <!--android:minLines="1"-->
-        <!--android:paddingTop="0dp"-->
-        <!--android:textColor="@color/blueGrey.dark"-->
-        <!--android:textSize="@dimen/text_size_large"-->
-        <!--android:theme="@style/CustomizedEditText" />-->
-
-        <!--<EditText-->
-        <!--android:id="@+id/edit_summary"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginLeft="10dp"-->
-        <!--android:layout_marginRight="10dp"-->
-        <!--android:autoLink="all"-->
-        <!--android:hint="@string/hint_summary"-->
-        <!--android:inputType="textMultiLine"-->
-        <!--android:maxLines="3"-->
-        <!--android:minLines="1"-->
-        <!--android:paddingTop="-5dp"-->
-        <!--android:textColor="@color/blueGrey.dark"-->
-        <!--android:textSize="@dimen/text_size_standard"-->
-        <!--android:theme="@style/CustomizedEditText" />-->
-        <!--</LinearLayout>-->
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v7.widget.RecyclerView
@@ -82,4 +68,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_edit"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginEnd="15dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:src="@drawable/ic_mode_edit_white_24dp"
+        android:visibility="invisible"
+        app:layout_anchor="@id/recycler_attachments"
+        app:layout_anchorGravity="bottom|end" />
 </android.support.design.widget.CoordinatorLayout>
