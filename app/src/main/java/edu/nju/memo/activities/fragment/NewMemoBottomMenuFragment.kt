@@ -11,5 +11,5 @@ import edu.nju.memo.R
  */
 class NewMemoBottomMenuFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
-            inflater.inflate(R.layout.fragment_new_memo_bottom_memu, container, false)
+            inflater.inflate(R.layout.layout_bottom_menu, container, false)
 }

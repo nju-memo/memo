@@ -21,55 +21,67 @@ class AttachmentsAdapter(private val summary: String,
                          private val attachments: List<Attachment>,
                          @ColorInt private val themeColor: Int)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (position == 0) setSummary(summary, holder as SummaryViewHolder)
-        else setAttachment(attachments[position - 1], holder as AttachmentViewHolder)
-    }
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) =
+            when (position) {
+                0 -> renderSummary(summary, holder as SummaryViewHolder)
+                else -> renderAttachment(attachments[position - 1], holder as AttachmentViewHolder).
+                        takeIf { position == attachments.size }.//the last one, make the editor visible
+                        let { holder.textView.visibility = View.VISIBLE }
+            }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int) =
-            if (viewType == 0) renderSummary(parent)
-            else renderAttachment(parent)
-
-    fun disableEdit() {
-        if (editable) {
-            summaryViewHolder?.textView?.readOnly()
-            attachmentViewHolders.forEach { it.textView.readOnly() }
-            editable = false
-        }
-    }
-
-    fun enableEdit() {
-        if (!editable) {
-            summaryViewHolder?.textView?.writable()
-            attachmentViewHolders.forEach { it.textView.writable() }
-            editable = true
-        }
-    }
+            when (viewType) {
+                0 -> this::inflateSummary
+                else -> this::inflateAttachment
+            }(parent)
 
     override fun getItemCount() = attachments.count() + 1
 
     override fun getItemViewType(position: Int) = position.coerceAtMost(1)
 
-    private fun renderSummary(parent: ViewGroup?) =
+    private fun disableEdit() {
+        if (editable) {
+            summaryViewHolder?.textView?.readOnly()
+            attachmentViewHolders.forEach { it.textView.readOnly() }
+        }
+    }
+
+    private fun enableEdit() {
+        if (!editable) {
+            summaryViewHolder?.textView?.writable()
+            attachmentViewHolders.forEach { it.textView.writable() }
+        }
+    }
+
+    private fun inflateSummary(parent: ViewGroup?) =
             SummaryViewHolder(inflater.inflate(R.layout.layout_summary, parent, false)).
                     also { it.layout.setBackgroundColor(themeColor) }.
                     also { summaryViewHolder = it }
 
-    private fun renderAttachment(parent: ViewGroup?) =
+    private fun inflateAttachment(parent: ViewGroup?) =
             AttachmentViewHolder(inflater.inflate(R.layout.layout_attachment, parent, false)).
                     also { attachmentViewHolders.add(it) }
 
-    private fun setSummary(summary: String, summaryViewHolder: SummaryViewHolder) {
-        summaryViewHolder.textView.editable(editable).
-                setText(summary.takeIf { it.isNotBlank() } ?: string(R.string.text_no_summary))
-    }
+    private fun renderSummary(summary: String,
+                              holder: SummaryViewHolder,
+                              writable: Boolean = false) =
+            with(holder) {
+                textView.editable(writable).
+                        setText(summary.takeIf { it.isNotBlank() } ?: string(R.string.text_no_summary))
+            }
 
-    private fun setAttachment(attachment: Attachment, holder: AttachmentViewHolder) {
-        holder.textView.editable(editable).setText(attachment.text)
-        attachment.uri.toFile()?.
-                let { decodeBitmap(it.path) }?.
-                let { holder.imageView.imageBitmap = it }
-    }
+    private fun renderAttachment(attachment: Attachment,
+                                 holder: AttachmentViewHolder,
+                                 writable: Boolean = false) =
+            with(holder) {
+                textView.editable(writable)
+                if (attachment.text.isBlank()) textView.visibility = View.GONE
+                else textView.setText(attachment.text)
+
+                val image = attachment.uri.toFile()?.let { decodeBitmap(it.path) }
+                if (image != null) imageView.imageBitmap = image
+                else imageView.visibility = View.GONE
+            }
 
     fun recycle() {
         summaryViewHolder = null
@@ -84,7 +96,11 @@ class AttachmentsAdapter(private val summary: String,
     private var summaryViewHolder: SummaryViewHolder? = null
     private val attachmentViewHolders = mutableListOf<AttachmentViewHolder>()
     private val inflater = LayoutInflater.from(application)
-    private var editable = true
+    var editable = false
+        set(value) {
+            if (value) enableEdit() else disableEdit()
+            field = value
+        }
 }
 
 

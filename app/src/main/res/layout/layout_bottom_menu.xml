@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:layout_gravity="bottom"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:contentDescription="@string/desc_add_image"
+        android:gravity="center"
+        android:src="@drawable/ic_keyboard_hide_white_24dp"
+        android:tint="@color/grey.light" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:gravity="center"
+        android:src="@drawable/ic_photo_camera_white_24dp"
+        android:tint="@color/grey.light" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:gravity="center"
+        android:src="@drawable/ic_photo_white_24dp"
+        android:tint="@color/grey.light" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:gravity="center"
+        android:src="@drawable/ic_done_white_24dp"
+        android:tint="@color/grey.light" />
+</LinearLayout>
+

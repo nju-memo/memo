@@ -13,27 +13,24 @@
         <item name="android:navigationBarColor">@color/blue</item>
     </style>
 
-    <style name="CustomizedEditText" parent="@android:style/TextAppearance">
-        <item name="android:textColorLink">@color/white</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:colorControlNormal">@color/colorPrimaryDark</item>
-        <item name="android:colorControlActivated">@color/colorPrimary</item>
-        <item name="android:colorActivatedHighlight">@color/colorPrimary</item>
+    <style name="WhiteEditor" parent="Theme.AppCompat.Light">
+        <item name="android:colorControlNormal">@color/white</item>
+        <item name="android:colorControlActivated">@color/white</item>
+        <item name="android:colorActivatedHighlight">@color/white</item>
     </style>
 
-    <style name="FloatingHintStyle" parent="@android:style/TextAppearance">
-        <item name="android:textSize">12sp</item>
+    <style name="WhiteText">
+        <item name="android:textColorHint">@color/grey.light</item>
+        <item name="android:textColorLink">@color/white</item>
         <item name="android:textColor">@color/white</item>
     </style>
 
     <style name="ExpandedTitleTextAppearance" parent="@android:style/TextAppearance">
-        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/transparent</item>
     </style>
 
     <style name="CollapsedTitleTextAppearance" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/transparent</item>
-        <item name="android:textSize">18sp</item>
     </style>
 </resources>
 

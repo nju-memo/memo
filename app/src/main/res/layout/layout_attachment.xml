@@ -18,7 +18,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:inputType="textMultiLine"
         android:minLines="1"
         android:textColor="@color/black"
-        android:textIsSelectable="true" />
+        android:theme="@style/WhiteEditor" />
 </LinearLayout>
