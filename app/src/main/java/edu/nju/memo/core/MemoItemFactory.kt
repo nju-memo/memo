@@ -14,8 +14,8 @@ interface MemoItemFactory {
     /**
      * Build a Memo from an Intent.
      *
-     * `extras[Intent.EXTRA_SUBJECT]` -> title
-     * `extras[Intent.EXTRA_TEXT]` -> summary
+     * `extras[Intent.EXTRA_SUBJECT]` -> mTitle
+     * `extras[Intent.EXTRA_TEXT]` -> mSummary
      * `clipData` -> attachments
      *
      * @param intent an intent

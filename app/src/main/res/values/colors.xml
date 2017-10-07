@@ -8,6 +8,7 @@
     <color name="transparent">@android:color/transparent</color>
     <color name="black">@android:color/black</color>
     <color name="black.transparent">#40000000</color>
+    <color name="black.transparent.dark">#80000000</color>
 
     <color name="indigo">#3F51B5</color>
     <color name="indigoDark">#303F9F</color>

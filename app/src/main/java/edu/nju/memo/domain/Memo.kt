@@ -8,14 +8,14 @@ import java.util.*
 /**
  * The core entity represents a memo item.
  *
- * This item itself only carry **one piece of plain textView summary**. Extra summary or summary with
+ * This item itself only carry **one piece of plain textView mSummary**. Extra mSummary or mSummary with
  * mime uriType of non-textView/plain are all described by [Attachment].
  *
  * Detailed topic about attachment:
- * * If a certain attachment has no [uri][Attachment.uri] && its [summary][Attachment.text]
- * equals to [item's summary][Memo.summary], it will be dropped. This is called `trim`.
+ * * If a certain attachment has no [uri][Attachment.uri] && its [mSummary][Attachment.text]
+ * equals to [item's mSummary][Memo.mSummary], it will be dropped. This is called `trim`.
  * * If the first attachment's [uriType][Attachment.uriType] is `textView/plain`(means it has no [uri][Attachment.uri]) &&
- * [item's summary][Memo.summary] is absent, the attachment is dropped, meanwhile [item's summary][Memo.summary]
+ * [item's mSummary][Memo.mSummary] is absent, the attachment is dropped, meanwhile [item's mSummary][Memo.mSummary]
  * is set as [Attachment.text].
  * This is called `absorb`.
  *
@@ -31,13 +31,13 @@ class Memo() : Parcelable {
     /**
      * Title. Not null, empty when absent.
      * */
-    var title = ""
+    var mTitle = ""
     /**
      * Content. Not null, empty when absent.
      *
      * This must be plain textView, if only the third part app stand by the design guide.
      * */
-    var summary = ""
+    var mSummary = ""
     /**
      * Created time. Actually, instantiated time.
      * */
@@ -50,7 +50,7 @@ class Memo() : Parcelable {
     /**
      * Attachments. Refer to [Attachment] for detail.
      * */
-    var attachments = mutableListOf<Attachment>()
+    var mAttachments = mutableListOf<Attachment>()
     /**
      * Tags.
      * */
@@ -58,40 +58,40 @@ class Memo() : Parcelable {
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
-        title = parcel.readString()
-        summary = parcel.readString()
+        mTitle = parcel.readString()
+        mSummary = parcel.readString()
         createTime = parcel.readLong()
         isRead = parcel.readByte() != 0.toByte()
         parcel.readStringList(tags)
         @Suppress("UNCHECKED_CAST")
         parcel.readParcelableArray(Attachment::class.java.classLoader)?.let {
-            attachments = Arrays.copyOf(it, it.size, Array<Attachment>::class.java).toMutableList()
+            mAttachments = Arrays.copyOf(it, it.size, Array<Attachment>::class.java).toMutableList()
         }
     }
 
     constructor(title: String?, content: String?) : this() {
-        this.title = title.toNotBlank()
-        this.summary = content.toNotBlank()
+        this.mTitle = title.toNotBlank()
+        this.mSummary = content.toNotBlank()
     }
 
-    fun addAttachment(attachment: Attachment) = attachments.add(attachment)
+    fun addAttachment(attachment: Attachment) = mAttachments.add(attachment)
 
-    fun removeAttachment(attachment: Attachment) = attachments.remove(attachment)
+    fun removeAttachment(attachment: Attachment) = mAttachments.remove(attachment)
 
     fun addTag(tag: String) = tags.add(tag)
 
     fun removeTag(tag: String) = tags.remove(tag)
 
     override fun toString() =
-            "Memo(id=$id, title='$title', createTime=$createTime, isRead=$isRead, tags=$tags\n summary='$summary'\n attachments=$attachments)"
+            "Memo(id=$id, mTitle='$mTitle', createTime=$createTime, isRead=$isRead, tags=$tags\n mSummary='$mSummary'\n mAttachments=$mAttachments)"
 
-    fun trimmedAttachments() = attachments.apply { removeAll(Attachment::isEmpty) }
+    fun trimmedAttachments() = mAttachments.apply { removeAll(Attachment::isEmpty) }
 
     fun copy(): Memo {
-        val item = Memo(title, summary)
+        val item = Memo(mTitle, mSummary)
         item.id = id
         item.createTime = createTime
-        item.attachments = attachments.toMutableList()
+        item.mAttachments = mAttachments.map { it.copy() }.toMutableList()
         item.tags = tags.toMutableList()
         item.isRead = isRead
         return item
@@ -99,12 +99,12 @@ class Memo() : Parcelable {
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(id)
-        parcel.writeString(title)
-        parcel.writeString(summary)
+        parcel.writeString(mTitle)
+        parcel.writeString(mSummary)
         parcel.writeLong(createTime)
         parcel.writeByte(if (isRead) 1 else 0)
         parcel.writeStringList(tags)
-        parcel.writeParcelableArray(attachments.toTypedArray(), flags)
+        parcel.writeParcelableArray(mAttachments.toTypedArray(), flags)
     }
 
     override fun describeContents(): Int = 0

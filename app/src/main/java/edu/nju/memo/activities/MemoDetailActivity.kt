@@ -14,34 +14,39 @@ import edu.nju.memo.common.*
 import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.Memo
 import kotlinx.android.synthetic.main.layout_memo_detail.*
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.imageBitmap
 
 /**
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
  */
 class MemoDetailActivity : AppCompatActivity() {
+    private lateinit var mMemo: Memo
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         setContentView(R.layout.layout_memo_detail)
 
         init()
-
-        intent.safeExtra<Memo>("memo")?.let { renderContent(it) }
     }
 
     private fun init() {
         setSupportActionBar(toolbar)
-
+        layout_outer.setStatusBarBackgroundColor(color(R.color.transparent))
         recycler_attachments.layoutManager = LinearLayoutManager(this)
-    }
-
-    private fun renderContent(memo: Memo) {
-        setHeader(memo.getThemePic(), memo.title).let { themeColor ->
-            setBody(memo.summary, memo.attachments, themeColor)
-        }
 
         showFab()
+
+        mMemo = intent.safeExtra<Memo>("memo") ?: Memo()
+        renderContent()
+
+        btn_done.setOnClickListener { save() }
+    }
+
+    private fun renderContent() {
+        setHeader(mMemo.getThemePic(), mMemo.mTitle).
+                let { themeColor -> doAsync { setBody(mMemo.mSummary, mMemo.mAttachments, themeColor) } }
+
         disableEdit()
     }
 
@@ -51,9 +56,10 @@ class MemoDetailActivity : AppCompatActivity() {
     }
 
     private fun setBody(summary: String, attachments: List<Attachment>, @ColorInt themeColor: Int) {
-        attachmentAdapter?.recycle()
-        attachmentAdapter = AttachmentsAdapter(summary, attachments, themeColor)
-        recycler_attachments.adapter = attachmentAdapter
+        mAttachmentAdapter?.recycle()
+        mAttachmentAdapter = AttachmentsAdapter(summary, attachments, themeColor)
+        mEditor = mAttachmentAdapter?.Editor()
+        recycler_attachments.adapter = mAttachmentAdapter
     }
 
     private fun setHeader(headerPic: Bitmap?, title: String) =
@@ -65,18 +71,35 @@ class MemoDetailActivity : AppCompatActivity() {
                 else -> null
             } ?: color(R.color.colorPrimary)
 
-    private fun disableEdit() {
-        attachmentAdapter?.editable = false
-        edit_title.readOnly()
+    private fun save() {
+        mEditor?.save()?.
+                let { (summary, attachments) ->
+                    mMemo.apply {
+                        this.mTitle = edit_title.text.toString()
+                        this.mSummary = summary
+                        this.mAttachments = attachments.toMutableList()
+                    }
+                }.
+                let { info(it) }//doAsync { CachedMemoDao.update(it!!) } }
     }
 
+    private fun disableEdit() {
+        mAttachmentAdapter?.editable = false
+        edit_title.readOnly()
+        flag = false
+    }
+
+    private var flag = false
     private fun enableEdit() {
-        attachmentAdapter?.editable = true
+        if (flag) return disableEdit()
+
+        mAttachmentAdapter?.editable = true
         edit_title.writable()
+        flag = true
     }
 
     private fun Memo.getThemePic() =
-            attachments.
+            mAttachments.
                     find { it.uriType.startsWith("image/") }?.
                     uri.toFile()?.takeIf { it.exists() }?.
                     let { decodeBitmap(it.path, height = dimensionPixelSize(R.dimen.appbar_height)) }
@@ -90,7 +113,7 @@ class MemoDetailActivity : AppCompatActivity() {
     }
 
     private fun decorateTitleScrim() {
-        toolbar.setBackgroundColor(color(R.color.black_transparent))
+        toolbar.background = resources.getDrawable(R.drawable.gradient_black_transparent)
         layout_appbar.addOnOffsetChangedListener { appbar, verticalOffset ->
             // verticalOffset is always minus
             val multiplier = (-verticalOffset / (appbar.totalScrollRange * 0.75f)).coerceAtMost(1.0f)
@@ -124,8 +147,9 @@ class MemoDetailActivity : AppCompatActivity() {
         layout_appbar.isEnabled = false
     }
 
-    private var attachmentAdapter: AttachmentsAdapter? = null
-    private val backwardListener = { _: View -> info("111"); this@MemoDetailActivity.finish() }
+    private var mEditor: AttachmentsAdapter.Editor? = null
+    private var mAttachmentAdapter: AttachmentsAdapter? = null
+    private val backwardListener = { _: View -> this@MemoDetailActivity.finish() }
 }
 
 class TitleTranslateManager(private val view: View,

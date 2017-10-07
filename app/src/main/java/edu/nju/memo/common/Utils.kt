@@ -1,15 +1,12 @@
 package edu.nju.memo.common
 
-import android.graphics.Color.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color.*
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.support.annotation.ColorInt
-import android.support.v4.text.util.LinkifyCompat
-import android.text.InputType
-import android.text.method.ArrowKeyMovementMethod
 import android.text.method.KeyListener
 import android.text.util.Linkify
 import android.util.DisplayMetrics
@@ -19,8 +16,6 @@ import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.widget.EditText
 import edu.nju.memo.MainApplication
-import org.jetbrains.anko.isSelectable
-import org.jetbrains.anko.sdk25.coroutines.onFocusChange
 import java.io.File
 import java.net.URI
 import kotlin.coroutines.experimental.buildSequence
@@ -29,6 +24,10 @@ import kotlin.coroutines.experimental.buildSequence
  * Created by tinker on 2017/9/12.
  *
  */
+
+val backgroundTag = "background"
+val keyListenerTag = "keyListener"
+val positionTag = "position"
 
 inline fun <reified T> T.info(log: Any?) = Log.i(T::class.java.canonicalName, "$log")
 
@@ -82,33 +81,38 @@ fun decodeBitmap(file: String, width: Int = displayMetric.widthPixels, height: I
             BitmapFactory.decodeFile(file, this)
         }
 
-private class StoredStatus(vararg val status: Any?)
+@SuppressWarnings("UNCHECKED_CAST")
+fun View.setTag(key: String, value: Any?): View {
+    if (tag !is MutableMap<*, *>?) return this
+    if (tag == null) tag = mutableMapOf<String, Any?>()
+
+    (tag as MutableMap<String, Any?>)[key] = value
+    return this
+}
+
+@SuppressWarnings("UNCHECKED_CAST")
+inline fun <reified T> View.getTag(key: String): T? {
+    if (tag !is MutableMap<*, *>) return null
+
+    return (tag as MutableMap<String, Any?>)[key] as T?
+}
 
 fun EditText.readOnly() = apply {
-    if (tag == null) {
-        setOnLongClickListener { _ -> true }
+    setTag(backgroundTag, background)
+    setTag(keyListenerTag, keyListener)
 
-        tag = StoredStatus(background, keyListener)
-        background = null
-        keyListener = null
-        linkClickable(true)
-    }
+    setOnLongClickListener { _ -> true }
+    background = null
+    keyListener = null
+    linkClickable(true)
 }
 
 fun EditText.writable() = apply {
-    tag.takeIf {
-        it is StoredStatus &&
-                it.status[0] is Drawable &&
-                it.status[1] is KeyListener
-    }?.let {
-        setOnLongClickListener { _ -> false }
+    background = getTag(backgroundTag)
+    keyListener = getTag(keyListenerTag)
 
-        it as StoredStatus
-        background = it.status[0] as Drawable
-        keyListener = it.status[1] as KeyListener
-        linkClickable(false)
-    }
-    tag = null
+    setOnLongClickListener { _ -> false }
+    linkClickable(false)
 }
 
 fun EditText.linkClickable(whether: Boolean) {
@@ -139,3 +143,7 @@ val density = displayMetric.density
 
 fun Double.toPx() = (this * density + 0.5f).toInt()
 
+fun View.visible(visibility: Int): View {
+    if (this.visibility != visibility) this.visibility = visibility
+    return this
+}

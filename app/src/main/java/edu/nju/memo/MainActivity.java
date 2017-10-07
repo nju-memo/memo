@@ -7,6 +7,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.widget.Button;
 
+import edu.nju.memo.activities.AdjustResizeLayout;
 import edu.nju.memo.activities.MemoDetailActivity;
 import edu.nju.memo.dao.CachedMemoDao;
 import edu.nju.memo.domain.Memo;

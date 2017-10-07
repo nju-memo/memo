@@ -8,7 +8,7 @@ import edu.nju.memo.common.toNotBlank
 import edu.nju.memo.dao.AttachmentCache
 
 /**
- * Class describes the extra attached summary of the Memo.
+ * Class describes the extra attached mSummary of the Memo.
  */
 class Attachment() : Parcelable {
     /**
@@ -16,7 +16,7 @@ class Attachment() : Parcelable {
      * */
     var id = 0L
     /**
-     * Uri of non-textView summary.
+     * Uri of non-textView mSummary.
      *
      * This uri is initially from outer. Then it will be cached as a temp file through [AttachmentCache].
      * The [uri] is set to the temp file's uri simultaneously.
@@ -27,7 +27,7 @@ class Attachment() : Parcelable {
      * */
     var uri: Uri? = null
     /**
-     * Text(plain, html...) summary. Not null, empty when absent.
+     * Text(plain, html...) mSummary. Not null, empty when absent.
      *
      * (just use WebView)
      * */
@@ -42,7 +42,7 @@ class Attachment() : Parcelable {
      * */
     var uriType = "textView/plain"
     /**
-     * Indicate should cache summary from [uri] or not.
+     * Indicate should cache mSummary from [uri] or not.
      *
      * If [uri] is modified after created via [MemoItemFactory], or initially created manually, please
      * also set this field properly. In detail, if the uri is temporary or expires later, set it to [NOT_CACHED].
@@ -57,13 +57,20 @@ class Attachment() : Parcelable {
         cacheState = parcel.readInt()
     }
 
+    fun copy(): Attachment {
+        val new = Attachment(uri, text, uriType)
+        new.id = id
+        new.cacheState = cacheState
+        return new
+    }
+
     constructor(uri: Uri?, content: String?, type: String) : this() {
         this.uri = uri
         this.text = content.toNotBlank()
         this.uriType = type
     }
 
-    override fun toString() = "Attachment(id=$id, uri=$uri, uriType=$uriType, summary='$text')\n"
+    override fun toString() = "Attachment(id=$id, uri=$uri, uriType=$uriType, text='$text')\n"
 
     fun isEmpty() = uri == null && text.isEmpty()
 

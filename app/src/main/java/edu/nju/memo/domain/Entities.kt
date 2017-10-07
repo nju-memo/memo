@@ -34,8 +34,8 @@ inline internal fun <reified T> tableOf() = CLASSES[T::class]!!
 inline internal fun <reified T> fieldsOf() = TABLES[T::class]!!
 
 internal fun Memo.toNamedArray() = arrayOf(
-        "TITLE" to title,
-        "CONTENT" to summary,
+        "TITLE" to mTitle,
+        "CONTENT" to mSummary,
         "CREATE_TIME" to createTime,
         "READ" to isRead
 )

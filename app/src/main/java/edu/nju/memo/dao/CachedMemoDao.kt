@@ -31,7 +31,7 @@ object CachedMemoDao : MemoDao {
     }
 
     private fun deleteCache(id: Long) {
-        select(id)?.let { AttachmentFileCache.deleteCache(it.attachments) }
+        select(id)?.let { AttachmentFileCache.deleteCache(it.mAttachments) }
         memoItems.remove(id)
     }
 
@@ -74,11 +74,11 @@ object CachedMemoDao : MemoDao {
         }
     }
 
-    override fun insert(item: Memo) = AttachmentFileCache.cacheToFile(item.attachments) &&
+    override fun insert(item: Memo) = AttachmentFileCache.cacheToFile(item.mAttachments) &&
             db.use {
                 withTx {
                     item.id = insertMemoItem(item).
-                            also { id -> insertTags(item.tags, id); insertAttachments(item.attachments, id) }
+                            also { id -> insertTags(item.tags, id); insertAttachments(item.mAttachments, id) }
                 }
             }.ifTrue { insertCache(item) } // add to cache after all
 
@@ -95,17 +95,17 @@ object CachedMemoDao : MemoDao {
 
     override fun update(item: Memo) = db.use {
         (item to select(item.id)).takeIf { it.second != null }?.let { (new, old) ->
-            AttachmentFileCache.cacheToFile(new.attachments - old!!.attachments) // create cache at first
+            AttachmentFileCache.cacheToFile(new.mAttachments - old!!.mAttachments) // create cache at first
                     && withTx {
                 // delete entirely to keep attachment's order correct
-                deleteAttachments(old.attachments, item.id)
-                insertAttachments(new.attachments, item.id)
+                deleteAttachments(old.mAttachments, item.id)
+                insertAttachments(new.mAttachments, item.id)
                 deleteTags(old.tags - new.tags, item.id)
                 insertTags(new.tags - old.tags, item.id)
                 update(tableOf<Memo>(), *item.toNamedArray()).whereSimple("ROWID = ${item.id}")
             } // and delete cache at last to minimize risk. The result doesn't matter.
                     // If we reach here, return true anyway
-                    && (AttachmentFileCache.deleteCache(old.attachments - new.attachments) || true)
+                    && (AttachmentFileCache.deleteCache(old.mAttachments - new.mAttachments) || true)
         }?.ifTrue { insertCache(item) } // update the cache after all
     } ?: false
 
@@ -136,7 +136,7 @@ object CachedMemoDao : MemoDao {
                 it.tags = select(tableOf<String>(), "TAG").where("IID = ${it.id}").
                         parseList(rowParser { tag: String -> tag }).toMutableList();it
             }.map {
-                it.attachments = select(tableOf<Attachment>(), "ROWID", "*").where("IID = ${it.id}").
+                it.mAttachments = select(tableOf<Attachment>(), "ROWID", "*").where("IID = ${it.id}").
                         parseList(rowParser { id: Long, _: Long, uri: String, type: String, content: String ->
                             Attachment(Uri.parse(uri), content, type).apply { this.id = id;this.cacheState = CACHED }
                         }).toMutableList();it

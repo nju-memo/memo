@@ -26,15 +26,15 @@ import edu.nju.memo.domain.NOT_CACHED
 object MemoItemFactoryImpl : MemoItemFactory {
     override fun getMemoItem(intent: Intent) =
             chooseIntentParser(intent.type)(intent).
-                    apply { attachments = getAttachments(intent.clipData) }.
+                    apply { mAttachments = getAttachments(intent.clipData) }.
                     reduceAttachments().
                     let { vendorHack(it, intent.extras) }.cacheToTemp()
 
     override fun getMemoItem(data: ClipData) =
-            // take the first and wrap it as an Memo, set following as its attachments
+            // take the first and wrap it as an Memo, set following as its mAttachments
             wrapMemoItem(getAttachments(data)).reduceAttachments().cacheToTemp()
 
-    /* create attachments from ClipData.Items */
+    /* create mAttachments from ClipData.Items */
     private fun getAttachments(data: ClipData) =
             data.description.sequence(data.itemCount, ClipDescription::getMimeType).
                     zip(data.sequence(data.itemCount, ClipData::getItemAt)).
@@ -43,33 +43,33 @@ object MemoItemFactoryImpl : MemoItemFactory {
 
     private fun vendorHack(item: Memo, extra: Bundle): Memo {
         if (FROM_CHROME in extra.keySet())
-            item.attachments[0].let {
+            item.mAttachments[0].let {
                 it.uriType = "image/*"
                 it.cacheState = NOT_CACHED
             }
         return item
     }
 
-    private fun Memo.cacheToTemp() = also { AttachmentFileCache.cacheToTemp(it.attachments) }
+    private fun Memo.cacheToTemp() = also { AttachmentFileCache.cacheToTemp(it.mAttachments) }
 
     private fun Memo.reduceAttachments() = this.
             takeIf { it.trimmedAttachments().size >= 1 }?.
-            takeIf { canMerge(it, it.attachments[0]) }?.
-            apply { summary = attachments.removeAt(0).text } ?: this
+            takeIf { canMerge(it, it.mAttachments[0]) }?.
+            apply { mSummary = mAttachments.removeAt(0).text } ?: this
 
     private fun wrapMemoItem(attachments: MutableList<Attachment>) =
             attachments.
                     takeIf { attachments.isNotEmpty() }?.
                     let {
                         (if (it[0].uriType == "text/plain") Memo(null, it.removeAt(0).text) else Memo())
-                                .apply { this.attachments = it }
+                                .apply { this.mAttachments = it }
                     } ?: Memo()
 
     private fun canMerge(item: Memo, attachment: Attachment) =
             // attachment's uri is null and attachment's uriType is textView/*
-            // item's summary is empty or equals attachment's summary
+            // item's mSummary is empty or equals attachment's mSummary
             attachment.uri == null && attachment.uriType.startsWith("text/")
-                    && (item.summary.isEmpty() || item.summary == attachment.text)
+                    && (item.mSummary.isEmpty() || item.mSummary == attachment.text)
 
     private fun chooseIntentParser(type: String) = intentParsers.getValue(type.split('/')[0])
 
