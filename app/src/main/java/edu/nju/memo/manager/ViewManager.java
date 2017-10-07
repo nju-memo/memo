@@ -2,6 +2,7 @@ package edu.nju.memo.manager;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.WindowManager.LayoutParams;
 
 import java.lang.reflect.Field;
 
+import edu.nju.memo.MemoPreview;
 import edu.nju.memo.view.FloatBall;
 import edu.nju.memo.view.FloatMenu;
 import edu.nju.memo.view.FloatState;
@@ -108,9 +110,11 @@ public class ViewManager {
 
             @Override
             public void onClick(View v) {
-                windowManager.removeView(floatBall);
-                showFloatMenu();
-                floatMenu.startAnimation();
+//                windowManager.removeView(floatBall);
+//                showFloatMenu();
+//                floatMenu.startAnimation();
+                Intent intent = new Intent(context, MemoPreview.class);
+                context.startActivity(intent);
             }
         };
         floatBall.setOnTouchListener(touchListener);
