@@ -25,7 +25,8 @@ import edu.nju.memo.view.FloatState;
 
 public class ViewManager {
 
-    private static final String TAG = "ViewManager";
+
+    public static final String TAG = "ViewManager";
 
     private FloatBall floatBall;
 
@@ -114,6 +115,8 @@ public class ViewManager {
 //                showFloatMenu();
 //                floatMenu.startAnimation();
                 Intent intent = new Intent(context, MemoPreview.class);
+                intent.putExtra(MemoPreview.FROM, TAG);
+                intent.putExtra(MemoPreview.CONTENT, getClipBoardContent());
                 context.startActivity(intent);
             }
         };
