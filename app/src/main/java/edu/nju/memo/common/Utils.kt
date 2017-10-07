@@ -4,9 +4,14 @@ import android.graphics.Color.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.support.annotation.ColorInt
+import android.support.v4.text.util.LinkifyCompat
+import android.text.InputType
+import android.text.method.ArrowKeyMovementMethod
 import android.text.method.KeyListener
+import android.text.util.Linkify
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
@@ -14,6 +19,8 @@ import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import android.widget.EditText
 import edu.nju.memo.MainApplication
+import org.jetbrains.anko.isSelectable
+import org.jetbrains.anko.sdk25.coroutines.onFocusChange
 import java.io.File
 import java.net.URI
 import kotlin.coroutines.experimental.buildSequence
@@ -75,22 +82,42 @@ fun decodeBitmap(file: String, width: Int = displayMetric.widthPixels, height: I
             BitmapFactory.decodeFile(file, this)
         }
 
-private var standardKeyListener: KeyListener? = null
+private class StoredStatus(vararg val status: Any?)
 
 fun EditText.readOnly() = apply {
-    background = null
-    if (standardKeyListener == null) standardKeyListener = keyListener
-    keyListener = null
+    if (tag == null) {
+        setOnLongClickListener { _ -> true }
+
+        tag = StoredStatus(background, keyListener)
+        background = null
+        keyListener = null
+        linkClickable(true)
+    }
 }
 
 fun EditText.writable() = apply {
-    keyListener = standardKeyListener
+    tag.takeIf {
+        it is StoredStatus &&
+                it.status[0] is Drawable &&
+                it.status[1] is KeyListener
+    }?.let {
+        setOnLongClickListener { _ -> false }
+
+        it as StoredStatus
+        background = it.status[0] as Drawable
+        keyListener = it.status[1] as KeyListener
+        linkClickable(false)
+    }
+    tag = null
 }
 
-fun EditText.editable(flag: Boolean) = apply {
-    if (!flag) readOnly()
-    else writable()
+fun EditText.linkClickable(whether: Boolean) {
+    linksClickable = whether
+    autoLinkMask = Linkify.ALL.takeIf { whether } ?: 0
+    setText(text.toString())
 }
+
+fun EditText.editable(flag: Boolean) = apply { if (flag) writable() else readOnly() }
 
 @ColorInt
 fun alphaBlend(@ColorInt front: Int, @ColorInt overlaid: Int): Int {
@@ -107,3 +134,8 @@ val application = MainApplication.APP
 val windowManager = application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
 val displayMetric = DisplayMetrics().apply { windowManager.defaultDisplay.getMetrics(this) }
+
+val density = displayMetric.density
+
+fun Double.toPx() = (this * density + 0.5f).toInt()
+

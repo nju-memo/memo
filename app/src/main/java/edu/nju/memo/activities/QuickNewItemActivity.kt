@@ -14,7 +14,7 @@ import org.jetbrains.anko.indeterminateProgressDialog
 class QuickNewItemActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_memo_detail)
+        setContentView(R.layout.layout_memo_detail)
         val item = MemoItemFactoryImpl.getMemoItem(intent)
         CachedMemoDao.insert(item)
 

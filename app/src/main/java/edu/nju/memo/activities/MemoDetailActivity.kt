@@ -3,16 +3,18 @@ package edu.nju.memo.activities
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.annotation.ColorInt
+import android.support.design.widget.AppBarLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.graphics.Palette
 import android.support.v7.widget.LinearLayoutManager
+import android.view.View
+import android.view.WindowManager
 import edu.nju.memo.R
 import edu.nju.memo.common.*
 import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.Memo
-import kotlinx.android.synthetic.main.fragment_memo_detail.*
+import kotlinx.android.synthetic.main.layout_memo_detail.*
 import org.jetbrains.anko.imageBitmap
-import org.jetbrains.anko.sdk25.coroutines.onClick
 
 /**
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
@@ -20,14 +22,15 @@ import org.jetbrains.anko.sdk25.coroutines.onClick
 class MemoDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_memo_detail)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        setContentView(R.layout.layout_memo_detail)
 
         init()
 
         intent.safeExtra<Memo>("memo")?.let { renderContent(it) }
     }
 
-    fun init() {
+    private fun init() {
         setSupportActionBar(toolbar)
 
         recycler_attachments.layoutManager = LinearLayoutManager(this)
@@ -63,12 +66,12 @@ class MemoDetailActivity : AppCompatActivity() {
             } ?: color(R.color.colorPrimary)
 
     private fun disableEdit() {
-        attachmentAdapter?.disableEdit()
+        attachmentAdapter?.editable = false
         edit_title.readOnly()
     }
 
     private fun enableEdit() {
-        attachmentAdapter?.enableEdit()
+        attachmentAdapter?.editable = true
         edit_title.writable()
     }
 
@@ -89,9 +92,14 @@ class MemoDetailActivity : AppCompatActivity() {
     private fun decorateTitleScrim() {
         toolbar.setBackgroundColor(color(R.color.black_transparent))
         layout_appbar.addOnOffsetChangedListener { appbar, verticalOffset ->
-            toolbar.background.alpha = (255 * // verticalOffset is always minus
-                    (1 + verticalOffset / (appbar.totalScrollRange * 0.75)).coerceAtLeast(0.0)).toInt()
+            // verticalOffset is always minus
+            val multiplier = (-verticalOffset / (appbar.totalScrollRange * 0.75f)).coerceAtMost(1.0f)
+            toolbar.background.alpha = (255 * (1 - multiplier)).toInt()
+            button_back.alpha = multiplier
+            if (-verticalOffset < appbar.totalScrollRange) button_back.setOnClickListener(null)
+            else button_back.setOnClickListener(backwardListener)
         }
+        layout_appbar.addOnOffsetChangedListener(TitleTranslateManager(edit_title, 45.0.toPx()))
     }
 
     private fun setHeaderTitle(title: String) {
@@ -117,4 +125,19 @@ class MemoDetailActivity : AppCompatActivity() {
     }
 
     private var attachmentAdapter: AttachmentsAdapter? = null
+    private val backwardListener = { _: View -> info("111"); this@MemoDetailActivity.finish() }
+}
+
+class TitleTranslateManager(private val view: View,
+                            private val totalDistance: Int) : AppBarLayout.OnOffsetChangedListener {
+    private val right by lazy { view.right }
+    private val left by lazy { view.left }
+    private val top by lazy { view.top }
+    private val bottom by lazy { view.bottom }
+
+    override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
+        val offset = totalDistance * -verticalOffset / appBarLayout.totalScrollRange
+        view.layout(left + offset, top, right, bottom)
+    }
+
 }
