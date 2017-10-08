@@ -7,10 +7,12 @@
     <color name="white">@android:color/white</color>
     <color name="transparent">@android:color/transparent</color>
     <color name="black">@android:color/black</color>
-    <color name="black.transparent.light">#0A000000</color>
+    <color name="black.transparent.air">#0A000000</color>
+    <color name="black.transparent.light">#28000000</color>
     <color name="black.transparent">#40000000</color>
     <color name="black.transparent.dark">#80000000</color>
     <color name="black.transparent.heavy">#C0000000</color>
+    <color name="red">#B0120A</color>
 
     <color name="indigo">#3F51B5</color>
     <color name="indigoDark">#303F9F</color>
@@ -26,6 +28,6 @@
 
     <color name="blueGrey.dark">#263238</color>
 
-    <color name="grey.light">#a0a0a0</color>
+    <color name="grey.light">#cfcfcf</color>
 
 </resources>

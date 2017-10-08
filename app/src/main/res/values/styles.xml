@@ -38,5 +38,10 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+
+    <declare-styleable name="FlowLayout">
+        <attr name="horizontal_spacing" format="dimension" />
+        <attr name="vertical_spacing" format="dimension" />
+    </declare-styleable>
 </resources>
 

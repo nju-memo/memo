@@ -57,7 +57,7 @@ object CachedMemoDao : MemoDao {
             }
 
     private fun SQLiteDatabase.deleteTags(tags: List<String>, itemId: Long) =
-            tags.forEach { delete(tableOf<String>(), "TAG=$it AND IID=$itemId") }
+            tags.forEach { delete(tableOf<String>(), "TAG='$it' AND IID=$itemId") }
 
     private fun SQLiteDatabase.withTx(code: SQLiteDatabase.() -> Unit): Boolean {
         var res = false

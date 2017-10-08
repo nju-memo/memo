@@ -7,9 +7,8 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
+import android.view.inputmethod.EditorInfo
+import android.widget.*
 import edu.nju.memo.R
 import edu.nju.memo.common.*
 import edu.nju.memo.domain.Attachment
@@ -20,19 +19,24 @@ import org.jetbrains.anko.imageBitmap
  */
 class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mSummary: String
+    private lateinit var mTags: List<String>
     private lateinit var mAttachments: List<Attachment>
     private var mThemeColor = color(R.color.colorPrimary)
     private lateinit var mModifiedSummary: String
+    private lateinit var mModifiedTags: MutableList<String>
     private lateinit var mModifiedAttachments: MutableList<Attachment>
 
     constructor(summary: String,
+                tags: List<String>,
                 attachments: List<Attachment>,
                 @ColorInt themeColor: Int
     ) : this() {
         this.mSummary = summary
+        this.mTags = tags
         this.mAttachments = attachments
         this.mThemeColor = themeColor
         this.mModifiedSummary = summary
+        this.mModifiedTags = mTags.toMutableList()
         this.mModifiedAttachments = attachments.map { it.copy() }.toMutableList()
         mModifiedAttachments.takeIf { it.isEmpty() }?.add(Attachment())
     }
@@ -74,6 +78,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 if (it.textView.text.isBlank()) it.textView.setText(string(R.string.text_no_summary))
             }
             mSummaryViewHolder?.textView?.readOnly()
+            mSummaryViewHolder?.let { tagEditable(false, it) }
             attachmentViewHolders.forEach { it.textView.readOnly() }
         }
     }
@@ -82,19 +87,28 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (!editable) {
             if (mModifiedSummary.isBlank()) mSummaryViewHolder?.textView?.setText("")
             mSummaryViewHolder?.textView?.writable()
+            mSummaryViewHolder?.let { tagEditable(true, it) }
             attachmentViewHolders.forEach { it.textView.writable() }
         }
     }
 
+    private fun tagEditable(writable: Boolean, holder: SummaryViewHolder) {
+        getTagDeleteBtns(holder).forEach {
+            it.visible(if (writable) View.VISIBLE else View.GONE)
+        }
+        holder.tagEdit.visible(if (writable) View.VISIBLE else View.GONE)
+    }
+
     private fun inflateSummary(parent: ViewGroup?) =
             SummaryViewHolder(inflater.inflate(R.layout.layout_summary, parent, false)).
-                    also { it.layout.setBackgroundColor(mThemeColor) }.
-                    also { it.textView.setText(mModifiedSummary) }.
+                    also { holder -> holder.layout.setBackgroundColor(mThemeColor) }.
+                    also { holder -> holder.textView.setText(mModifiedSummary) }.
+                    also { holder -> mModifiedTags.forEach { addTag(it, holder.tagView) } }.
+                    also { it.tagEdit.setOnEditorActionListener(addTagListener) }.
                     also { mSummaryViewHolder = it }
 
     private fun inflateAttachment(parent: ViewGroup?) =
             AttachmentViewHolder(inflater.inflate(R.layout.layout_attachment, parent, false)).
-                    also { it.textView.setBackgroundColor(color(R.color.black_transparent)) }.
                     also { attachmentViewHolders.add(it) }
 
     private fun renderSummary(holder: SummaryViewHolder,
@@ -102,8 +116,10 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                               overwrite: Boolean = true) =
             holder.apply {
                 if (overwrite) saveSummaryState(holder)
+
                 textView.editable(writable).
                         setText(mModifiedSummary.takeIf { it.isNotBlank() } ?: string(R.string.text_no_summary))
+                tagEditable(writable, holder)
             }
 
     private fun renderAttachment(position: Int,
@@ -126,8 +142,25 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 setPosition(position)
             }
 
+    private fun addTag(tag: String, container: FlowLayout): Boolean {
+        val newTagLayout = inflater.inflate(R.layout.layout_tag, container, false)
+        newTagLayout.child<TextView>(R.id.text_tag).text = tag
+        newTagLayout.child<ImageButton>(R.id.btn_delete).
+                apply {
+                    visible(if (editable) View.VISIBLE else View.GONE)
+                    setOnClickListener(deleteTagListener)
+                }
+        container.addView(newTagLayout)
+        return true
+    }
+
+    private fun isNewTag(v: TextView?, actionId: Int, event: KeyEvent?)
+            = actionId == EditorInfo.IME_ACTION_DONE && v is EditText && v.text.isNotEmpty()
+
+
     private fun saveSummaryState(holder: SummaryViewHolder) {
         mModifiedSummary = holder.textView.text.toString()
+        mModifiedTags = getTagViews(holder).map { it.text.toString() }.toMutableList()
     }
 
     private fun saveAttachmentState(holder: AttachmentViewHolder) {
@@ -135,6 +168,20 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             mModifiedAttachments[it].apply { text = holder.textView.text.toString() }
         }
     }
+
+    private fun getTagViews(holder: SummaryViewHolder) =
+            holder.tagView.
+                    let {
+                        it.sequence(it.childCount, ViewGroup::getChildAt).
+                                map { it.child<TextView>(R.id.text_tag) }.toList()
+                    }
+
+    private fun getTagDeleteBtns(holder: SummaryViewHolder) =
+            holder.tagView.
+                    let {
+                        it.sequence(it.childCount, ViewGroup::getChildAt).
+                                map { it.child<ImageView>(R.id.btn_delete) }.toList()
+                    }
 
     fun recycle() {
         mSummaryViewHolder = null
@@ -146,42 +193,49 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         drawable.takeIf { it is BitmapDrawable }?.let { (it as BitmapDrawable).bitmap.recycle() }
     }
 
-    private fun deleteAttachmentAt(position: Int) {
-        val removed = mModifiedAttachments.removeAt(position)
-        if (mModifiedAttachments.isEmpty()) {
-            mModifiedAttachments.add(Attachment())
-            if (!removed.isEmpty())
-                notifyItemChanged(position + 1, "payload")
-        } else {
-            notifyItemRemoved(position + 1)
-            notifyItemRangeChanged(position + 1, itemCount - position - 1, "payload")
-        }
-        attachmentViewHolders.
-                find { it.textView.getTag<Int>(positionTag) == (position - 1).coerceAtLeast(0) }?.
-                textView?.requestFocus()
-    }
+//    private fun deleteAttachmentAt(position: Int) {
+//        val removed = mModifiedAttachments.removeAt(position)
+//        if (mModifiedAttachments.isEmpty()) {
+//            mModifiedAttachments.add(Attachment())
+//            if (!removed.isEmpty())
+//                notifyItemChanged(position + 1, "payload")
+//        } else {
+//            notifyItemRemoved(position + 1)
+//            notifyItemRangeChanged(position + 1, itemCount - position - 1, "payload")
+//        }
+//        attachmentViewHolders.
+//                find { it.textView.getTag<Int>(positionTag) == (position - 1).coerceAtLeast(0) }?.
+//                textView?.requestFocus()
+//    }
 
-    private fun isDeletion(v: View, keyCode: Int, event: KeyEvent)
-            = v is EditText && event.action == KeyEvent.ACTION_UP &&
-            keyCode == KeyEvent.KEYCODE_DEL && v.text.isBlank()
+//    private fun isDeletion(v: View, keyCode: Int, event: KeyEvent)
+//            = v is EditText && event.action == KeyEvent.ACTION_UP &&
+//            keyCode == KeyEvent.KEYCODE_DEL && v.text.isBlank()
 
     private var mSummaryViewHolder: SummaryViewHolder? = null
     private val attachmentViewHolders = mutableListOf<AttachmentViewHolder>()
     private val inflater = LayoutInflater.from(application)
-    private val attachmentDeletionListener = { v: View, keyCode: Int, event: KeyEvent ->
-        isDeletion(v, keyCode, event).
-                ifTrue { v.getTag<Int>(positionTag)?.let { deleteAttachmentAt(it) } }
+    private val deleteTagListener = { v: View ->
+        if (v is ImageButton) mSummaryViewHolder?.tagView?.removeView(v.parent as View)
     }
+    private val addTagListener = { v: TextView?, actionId: Int, event: KeyEvent? ->
+        if (isNewTag(v, actionId, event)) addTag(v!!.text.toString(), mSummaryViewHolder!!.tagView)
+        else false
+    }
+    //    private val attachmentDeletionListener = { v: View, keyCode: Int, event: KeyEvent ->
+//        isDeletion(v, keyCode, event).
+//                ifTrue { v.getTag<Int>(positionTag)?.let { deleteAttachmentAt(it) } }
+//    }
     var editable = false
         set(value) {
             if (value) enableEdit() else disableEdit()
             field = value
         }
 
-    fun save(): Pair<String, MutableList<Attachment>> {
+    fun save(): Triple<String, MutableList<String>, MutableList<Attachment>> {
         mSummaryViewHolder?.let { saveSummaryState(it) }
         attachmentViewHolders.forEach { saveAttachmentState(it) }
-        return mModifiedSummary to mModifiedAttachments
+        return Triple(mModifiedSummary, mModifiedTags, mModifiedAttachments)
     }
 }
 
@@ -198,4 +252,6 @@ class AttachmentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 class SummaryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var layout = itemView as LinearLayout
     var textView = itemView.child<EditText>(R.id.edit_summary)
+    var tagView = itemView.child<FlowLayout>(R.id.layout_tag)
+    var tagEdit = itemView.child<EditText>(R.id.edit_new_tag)
 }

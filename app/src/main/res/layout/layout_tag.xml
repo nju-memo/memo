@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/corner"
+    android:backgroundTint="@color/black.transparent.light">
+
+    <TextView
+        android:id="@+id/text_tag"
+        style="@style/WhiteText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginBottom="5dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="5dp"
+        android:minHeight="24dp"
+        android:textSize="18sp" />
+
+    <ImageButton
+        android:id="@+id/btn_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_marginStart="-6dp"
+        android:contentDescription="@string/tag"
+        android:background="@null"
+        android:src="@drawable/ic_highlight_off_white_24dp" />
 
 </LinearLayout>

@@ -1,5 +1,6 @@
 package edu.nju.memo.activities
 
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.annotation.ColorInt
@@ -38,20 +39,21 @@ class MemoDetailActivity : AppCompatActivity() {
         recycler_attachments.layoutManager = LinearLayoutManager(this)
         button_back.setOnClickListener { finish() }
         button_done.setOnClickListener { save() }
-
         showFab()
         fab_edit.setOnClickListener { enableEdit() }
 
-        mMemo = intent.safeExtra<Memo>("memo") ?: Memo()
+        val input = intent.safeExtra<Memo>("memo")
+        mMemo = input ?: Memo()
         renderContent()
+        if (input != null) disableEdit()
     }
 
     private fun renderContent() {
-        setHeader(mMemo.getThemePic(), mMemo.mTitle).
-                let { themeColor -> doAsync { setBody(mMemo.mSummary, mMemo.mAttachments, themeColor) } }
-
-        disableEdit()
+        val themeColor = setHeader(mMemo.getThemePic(), mMemo.mTitle)
+        doAsync { setBody(mMemo.mSummary, mMemo.tags, mMemo.mAttachments, themeColor) }
+        fab_edit.backgroundTintList = ColorStateList.valueOf(themeColor)
     }
+
 
     private fun showFab() {
         fab_edit.show()
@@ -69,9 +71,12 @@ class MemoDetailActivity : AppCompatActivity() {
         button_done.alpha = 0.0f
     }
 
-    private fun setBody(summary: String, attachments: List<Attachment>, @ColorInt themeColor: Int) {
+    private fun setBody(summary: String,
+                        tags: List<String>,
+                        attachments: List<Attachment>,
+                        @ColorInt themeColor: Int) {
         mAttachmentAdapter?.recycle()
-        mAttachmentAdapter = AttachmentsAdapter(summary, attachments, themeColor)
+        mAttachmentAdapter = AttachmentsAdapter(summary, tags, attachments, themeColor)
         recycler_attachments.adapter = mAttachmentAdapter
     }
 
@@ -83,38 +88,6 @@ class MemoDetailActivity : AppCompatActivity() {
                 else -> null
             } ?: color(R.color.colorPrimary)
 
-    private fun save() {
-        mAttachmentAdapter?.save()?.
-                let { (summary, attachments) ->
-                    mMemo.apply {
-                        this.mTitle = edit_title.text.toString()
-                        this.mSummary = summary
-                        this.mAttachments = attachments.toMutableList()
-                    }
-                }.
-                let { doAsync { CachedMemoDao.updateOrInsert(it!!) };info(it) }
-        showFab()
-        hideBtnDone()
-        disableEdit()
-    }
-
-    private fun disableEdit() {
-        mAttachmentAdapter?.editable = false
-        edit_title.readOnly()
-        flag = false
-    }
-
-    private var flag = false
-    private fun enableEdit() {
-        if (flag) return disableEdit()
-
-        hideFab()
-        showBtnDone()
-
-        mAttachmentAdapter?.editable = true
-        edit_title.writable()
-        flag = true
-    }
 
     private fun Memo.getThemePic() =
             mAttachments.
@@ -158,6 +131,39 @@ class MemoDetailActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+    private fun disableEdit() {
+        showFab()
+        hideBtnDone()
+
+        mAttachmentAdapter?.editable = false
+        edit_title.readOnly()
+    }
+
+    private fun enableEdit() {
+        hideFab()
+        showBtnDone()
+
+        mAttachmentAdapter?.editable = true
+        edit_title.writable()
+    }
+
+    private fun save() {
+        mAttachmentAdapter?.save()?.
+                let { (summary, tags, attachments) ->
+                    mMemo.apply {
+                        this.mTitle = edit_title.text.toString()
+                        this.mSummary = summary
+                        this.tags = tags
+                        this.mAttachments = attachments.toMutableList()
+                    }
+                }.
+                let { doAsync { CachedMemoDao.updateOrInsert(it!!) };info(it) }
+        showFab()
+        hideBtnDone()
+        disableEdit()
     }
 
     private var mAttachmentAdapter: AttachmentsAdapter? = null
