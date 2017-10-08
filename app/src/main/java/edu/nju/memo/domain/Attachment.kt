@@ -16,7 +16,7 @@ class Attachment() : Parcelable {
      * */
     var id = 0L
     /**
-     * Uri of non-textView mSummary.
+     * Uri of non-text mSummary.
      *
      * This uri is initially from outer. Then it will be cached as a temp file through [AttachmentCache].
      * The [uri] is set to the temp file's uri simultaneously.
@@ -40,7 +40,7 @@ class Attachment() : Parcelable {
      *
      * If [uri] is absent, this represents [text]'s uriType
      * */
-    var uriType = "textView/plain"
+    var uriType = "text/plain"
     /**
      * Indicate should cache mSummary from [uri] or not.
      *
@@ -81,18 +81,11 @@ class Attachment() : Parcelable {
         other as Attachment
 
         if (uri != other.uri) return false
-        if (text != other.text) return false
-        if (uriType != other.uriType) return false
 
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = uri?.hashCode() ?: 0
-        result = 31 * result + text.hashCode()
-        result = 31 * result + uriType.hashCode()
-        return result
-    }
+    override fun hashCode() = uri?.hashCode() ?: 0
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(id)

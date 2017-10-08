@@ -9,8 +9,10 @@ import android.support.v7.graphics.Palette
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import edu.nju.memo.R
 import edu.nju.memo.common.*
+import edu.nju.memo.dao.CachedMemoDao
 import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.Memo
 import kotlinx.android.synthetic.main.layout_memo_detail.*
@@ -34,13 +36,14 @@ class MemoDetailActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         layout_outer.setStatusBarBackgroundColor(color(R.color.transparent))
         recycler_attachments.layoutManager = LinearLayoutManager(this)
+        button_back.setOnClickListener { finish() }
+        button_done.setOnClickListener { save() }
 
         showFab()
+        fab_edit.setOnClickListener { enableEdit() }
 
         mMemo = intent.safeExtra<Memo>("memo") ?: Memo()
         renderContent()
-
-        btn_done.setOnClickListener { save() }
     }
 
     private fun renderContent() {
@@ -52,13 +55,23 @@ class MemoDetailActivity : AppCompatActivity() {
 
     private fun showFab() {
         fab_edit.show()
-        fab_edit.setOnClickListener { enableEdit() }
+    }
+
+    private fun hideFab() {
+        fab_edit.hide()
+    }
+
+    private fun showBtnDone() {
+        button_done.alpha = 1.0f
+    }
+
+    private fun hideBtnDone() {
+        button_done.alpha = 0.0f
     }
 
     private fun setBody(summary: String, attachments: List<Attachment>, @ColorInt themeColor: Int) {
         mAttachmentAdapter?.recycle()
         mAttachmentAdapter = AttachmentsAdapter(summary, attachments, themeColor)
-        mEditor = mAttachmentAdapter?.Editor()
         recycler_attachments.adapter = mAttachmentAdapter
     }
 
@@ -66,13 +79,12 @@ class MemoDetailActivity : AppCompatActivity() {
             when {
                 headerPic != null && title.isNotBlank() -> setDecoratedHeader(headerPic, title)
                 headerPic != null && title.isBlank() -> setHeaderPicture(headerPic)
-                headerPic == null && title.isBlank() -> setHeadless().let { null }
-                headerPic == null && title.isNotBlank() -> setHeaderTitle(title).let { null }
+                headerPic == null -> setHeaderTitle(title).let { null }
                 else -> null
             } ?: color(R.color.colorPrimary)
 
     private fun save() {
-        mEditor?.save()?.
+        mAttachmentAdapter?.save()?.
                 let { (summary, attachments) ->
                     mMemo.apply {
                         this.mTitle = edit_title.text.toString()
@@ -80,7 +92,10 @@ class MemoDetailActivity : AppCompatActivity() {
                         this.mAttachments = attachments.toMutableList()
                     }
                 }.
-                let { info(it) }//doAsync { CachedMemoDao.update(it!!) } }
+                let { doAsync { CachedMemoDao.updateOrInsert(it!!) };info(it) }
+        showFab()
+        hideBtnDone()
+        disableEdit()
     }
 
     private fun disableEdit() {
@@ -92,6 +107,9 @@ class MemoDetailActivity : AppCompatActivity() {
     private var flag = false
     private fun enableEdit() {
         if (flag) return disableEdit()
+
+        hideFab()
+        showBtnDone()
 
         mAttachmentAdapter?.editable = true
         edit_title.writable()
@@ -114,15 +132,15 @@ class MemoDetailActivity : AppCompatActivity() {
 
     private fun decorateTitleScrim() {
         toolbar.background = resources.getDrawable(R.drawable.gradient_black_transparent)
+        layout_header.background = resources.getDrawable(R.drawable.reverse_gradient_black_tranparent)
         layout_appbar.addOnOffsetChangedListener { appbar, verticalOffset ->
             // verticalOffset is always minus
             val multiplier = (-verticalOffset / (appbar.totalScrollRange * 0.75f)).coerceAtMost(1.0f)
-            toolbar.background.alpha = (255 * (1 - multiplier)).toInt()
-            button_back.alpha = multiplier
-            if (-verticalOffset < appbar.totalScrollRange) button_back.setOnClickListener(null)
-            else button_back.setOnClickListener(backwardListener)
+            val alpha = (255 * (1 - multiplier)).toInt()
+            toolbar.background.alpha = alpha
+            layout_header.background.alpha = alpha
         }
-        layout_appbar.addOnOffsetChangedListener(TitleTranslateManager(edit_title, 45.0.toPx()))
+        layout_appbar.addOnOffsetChangedListener(TitleTranslateManager(edit_title, 20.0.toPx()))
     }
 
     private fun setHeaderTitle(title: String) {
@@ -142,14 +160,7 @@ class MemoDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun setHeadless() {
-        layout_appbar.setExpanded(false)
-        layout_appbar.isEnabled = false
-    }
-
-    private var mEditor: AttachmentsAdapter.Editor? = null
     private var mAttachmentAdapter: AttachmentsAdapter? = null
-    private val backwardListener = { _: View -> this@MemoDetailActivity.finish() }
 }
 
 class TitleTranslateManager(private val view: View,
@@ -161,7 +172,7 @@ class TitleTranslateManager(private val view: View,
 
     override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
         val offset = totalDistance * -verticalOffset / appBarLayout.totalScrollRange
-        view.layout(left + offset, top, right, bottom)
+        view.layout(left + offset, top, right - offset, bottom)
+        if (view is TextView) view.text = view.text
     }
-
 }

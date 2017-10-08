@@ -42,7 +42,7 @@ object AttachmentFileCache : AttachmentCache {
     fun deleteCache(attachments: Iterable<Attachment>) =
             attachments.
                     filter { it.cacheState == CACHED && it.uri != null }.
-                    map { File(URI(it.uri.safeToString())) }.
+                    mapNotNull { it.uri.toFile() }.
                     all { it.isFile && it.delete() }
 
     private fun save(outputStream: OutputStream, uri: Uri) = outputStream.use { output ->

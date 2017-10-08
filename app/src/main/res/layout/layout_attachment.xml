@@ -20,7 +20,7 @@
         android:layout_margin="10dp"
         android:fitsSystemWindows="true"
         android:inputType="textMultiLine"
+        android:hint="@string/hint_other"
         android:minLines="1"
-        android:textColor="@color/black"
         android:theme="@style/WhiteEditor" />
 </LinearLayout>

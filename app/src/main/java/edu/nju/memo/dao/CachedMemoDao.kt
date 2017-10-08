@@ -54,7 +54,7 @@ object CachedMemoDao : MemoDao {
     private fun SQLiteDatabase.deleteAttachments(attachments: List<Attachment>, itemId: Long) =
             attachments.peek {
                 delete(tableOf<Attachment>(), "ROWID=${it.id} AND IID=$itemId")
-            }.let { AttachmentFileCache.deleteCache(it) }
+            }
 
     private fun SQLiteDatabase.deleteTags(tags: List<String>, itemId: Long) =
             tags.forEach { delete(tableOf<String>(), "TAG=$it AND IID=$itemId") }
@@ -112,9 +112,7 @@ object CachedMemoDao : MemoDao {
     override fun update(test: Predicate<Memo>, func: Function<Memo, Memo>) =
             select(test).map { func.apply(it) }.filter { update(it) }
 
-    override fun updateOrInsert(item: Memo) = db.use {
-        (!update(item)) && insert(item) // short circuit, when update fails try insert
-    }
+    override fun updateOrInsert(item: Memo) = (!update(item)) && insert(item) // short circuit, when update fails try insert
 
     override fun select(id: Long) = memoItems[id]
 
@@ -138,7 +136,8 @@ object CachedMemoDao : MemoDao {
             }.map {
                 it.mAttachments = select(tableOf<Attachment>(), "ROWID", "*").where("IID = ${it.id}").
                         parseList(rowParser { id: Long, _: Long, uri: String, type: String, content: String ->
-                            Attachment(Uri.parse(uri), content, type).apply { this.id = id;this.cacheState = CACHED }
+                            Attachment(uri.takeIf { it != "null" }?.let { Uri.parse(it) },
+                                    content, type).apply { this.id = id;this.cacheState = CACHED }
                         }).toMutableList();it
             }.map { it.id to it }.let { mutableMapOf(*it.toTypedArray()) }
         }

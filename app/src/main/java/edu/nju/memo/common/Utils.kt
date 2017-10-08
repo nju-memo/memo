@@ -53,7 +53,7 @@ fun <T> Iterable<T>.peek(func: (T) -> Unit) = apply { forEach { func(it) } }
 
 fun <T, R> T.letIf(predication: Boolean, func: (T) -> R) = if (predication) func(this) else null
 
-fun Uri?.toFile() = this?.let { File(URI(this.toString())) }
+fun Uri?.toFile() = this?.takeIf { this.toString() != "null" }?.let { File(URI(this.toString())) }
 
 fun Uri?.toFilePath() = toFile()?.path
 

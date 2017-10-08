@@ -34,6 +34,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         this.mThemeColor = themeColor
         this.mModifiedSummary = summary
         this.mModifiedAttachments = attachments.map { it.copy() }.toMutableList()
+        mModifiedAttachments.takeIf { it.isEmpty() }?.add(Attachment())
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
@@ -69,6 +70,9 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private fun disableEdit() {
         if (editable) {
+            mSummaryViewHolder?.let {
+                if (it.textView.text.isBlank()) it.textView.setText(string(R.string.text_no_summary))
+            }
             mSummaryViewHolder?.textView?.readOnly()
             attachmentViewHolders.forEach { it.textView.readOnly() }
         }
@@ -76,6 +80,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private fun enableEdit() {
         if (!editable) {
+            if (mModifiedSummary.isBlank()) mSummaryViewHolder?.textView?.setText("")
             mSummaryViewHolder?.textView?.writable()
             attachmentViewHolders.forEach { it.textView.writable() }
         }
@@ -89,7 +94,6 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private fun inflateAttachment(parent: ViewGroup?) =
             AttachmentViewHolder(inflater.inflate(R.layout.layout_attachment, parent, false)).
-                    also { it.textView.setOnKeyListener(attachmentDeletionListener) }.
                     also { it.textView.setBackgroundColor(color(R.color.black_transparent)) }.
                     also { attachmentViewHolders.add(it) }
 
@@ -128,9 +132,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private fun saveAttachmentState(holder: AttachmentViewHolder) {
         holder.textView.getTag<Int>(positionTag)?.let {
-            mModifiedAttachments[it].apply {
-                text = holder.textView.text.toString()
-            }
+            mModifiedAttachments[it].apply { text = holder.textView.text.toString() }
         }
     }
 
@@ -176,12 +178,10 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             field = value
         }
 
-    inner class Editor {
-        fun save(): Pair<String, MutableList<Attachment>> {
-            mSummaryViewHolder?.let { saveSummaryState(it) }
-            attachmentViewHolders.forEach { saveAttachmentState(it) }
-            return mModifiedSummary to mModifiedAttachments
-        }
+    fun save(): Pair<String, MutableList<Attachment>> {
+        mSummaryViewHolder?.let { saveSummaryState(it) }
+        attachmentViewHolders.forEach { saveAttachmentState(it) }
+        return mModifiedSummary to mModifiedAttachments
     }
 }
 
