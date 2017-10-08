@@ -32,14 +32,16 @@ object MemoItemFactoryImpl : MemoItemFactory {
 
     override fun getMemoItem(data: ClipData) =
             // take the first and wrap it as an Memo, set following as its mAttachments
-            wrapMemoItem(getAttachments(data)).reduceAttachments().cacheToTemp()
+            wrapMemo(getAttachments(data)).reduceAttachments().cacheToTemp()
 
     /* create mAttachments from ClipData.Items */
-    private fun getAttachments(data: ClipData) =
+    fun getAttachments(data: ClipData) =
             data.description.sequence(data.itemCount, ClipDescription::getMimeType).
                     zip(data.sequence(data.itemCount, ClipData::getItemAt)).
                     map { (type, item) -> chooseClipParser(type)(item) }.
                     toMutableList()
+
+    fun getAttachments(intent: Intent) = zipAttachment(getMemoItem(intent))
 
     private fun vendorHack(item: Memo, extra: Bundle): Memo {
         if (FROM_CHROME in extra.keySet())
@@ -57,7 +59,10 @@ object MemoItemFactoryImpl : MemoItemFactory {
             takeIf { canMerge(it, it.mAttachments[0]) }?.
             apply { mSummary = mAttachments.removeAt(0).text } ?: this
 
-    private fun wrapMemoItem(attachments: MutableList<Attachment>) =
+    private fun zipAttachment(memo: Memo) =
+            memo.mAttachments.add(Attachment(null, memo.mSummary, "text/plain"))
+
+    private fun wrapMemo(attachments: MutableList<Attachment>) =
             attachments.
                     takeIf { attachments.isNotEmpty() }?.
                     let {

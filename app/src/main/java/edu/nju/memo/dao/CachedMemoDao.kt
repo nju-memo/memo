@@ -126,6 +126,8 @@ object CachedMemoDao : MemoDao {
 
     override fun selectAllTitles() = memoItems.map { (_, v) -> v.mTitle }
 
+    override fun latestMemo() = memoItems.values.maxBy { it.createTime }
+
     override fun refresh() = synchronized(this) {
         db.use {
             select(tableOf<Memo>(), "ROWID", "*").parseList(
