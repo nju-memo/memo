@@ -18,7 +18,9 @@ import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.Memo
 import kotlinx.android.synthetic.main.layout_memo_detail.*
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.doAsyncResult
 import org.jetbrains.anko.imageBitmap
+import java.util.concurrent.Future
 
 /**
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
@@ -34,6 +36,10 @@ class MemoDetailActivity : AppCompatActivity() {
     }
 
     private fun init() {
+        val input = intent.safeExtra<Memo>("memo")
+        var cachedPic: Future<Bitmap?>? = null
+        if (input != null) cachedPic = doAsyncResult { input.getThemePic() }
+
         setSupportActionBar(toolbar)
         layout_outer.setStatusBarBackgroundColor(color(R.color.transparent))
         recycler_attachments.layoutManager = LinearLayoutManager(this)
@@ -42,14 +48,13 @@ class MemoDetailActivity : AppCompatActivity() {
         showFab()
         fab_edit.setOnClickListener { enableEdit() }
 
-        val input = intent.safeExtra<Memo>("memo")
         mMemo = input ?: Memo()
-        renderContent()
+        renderContent(cachedPic?.get())
         if (input != null) disableEdit()
     }
 
-    private fun renderContent() {
-        val themeColor = setHeader(mMemo.getThemePic(), mMemo.mTitle)
+    private fun renderContent(cachedPic: Bitmap?) {
+        val themeColor = setHeader(cachedPic, mMemo.mTitle)
         doAsync { setBody(mMemo.mSummary, mMemo.tags, mMemo.mAttachments, themeColor) }
         fab_edit.backgroundTintList = ColorStateList.valueOf(themeColor)
     }
@@ -76,7 +81,7 @@ class MemoDetailActivity : AppCompatActivity() {
                         attachments: List<Attachment>,
                         @ColorInt themeColor: Int) {
         mAttachmentAdapter?.recycle()
-        mAttachmentAdapter = AttachmentsAdapter(summary, tags, attachments, themeColor)
+        mAttachmentAdapter = AttachmentsAdapter(this, summary, tags, attachments, themeColor)
         recycler_attachments.adapter = mAttachmentAdapter
     }
 
@@ -160,9 +165,7 @@ class MemoDetailActivity : AppCompatActivity() {
                         this.mAttachments = attachments.toMutableList()
                     }
                 }.
-                let { doAsync { CachedMemoDao.updateOrInsert(it!!) };info(it) }
-        showFab()
-        hideBtnDone()
+                let { doAsync { CachedMemoDao.updateOrInsert(it!!) } }
         disableEdit()
     }
 

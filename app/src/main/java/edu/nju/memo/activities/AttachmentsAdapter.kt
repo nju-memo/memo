@@ -1,5 +1,6 @@
 package edu.nju.memo.activities
 
+import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.support.annotation.ColorInt
 import android.support.v7.widget.RecyclerView
@@ -12,12 +13,14 @@ import android.widget.*
 import edu.nju.memo.R
 import edu.nju.memo.common.*
 import edu.nju.memo.domain.Attachment
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.imageBitmap
+import org.jetbrains.anko.runOnUiThread
 
 /**
  * @author [Cleveland Alto](mailto:tinker19981@hotmail.com)
  */
-class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mSummary: String
     private lateinit var mTags: List<String>
     private lateinit var mAttachments: List<Attachment>
@@ -26,11 +29,12 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mModifiedTags: MutableList<String>
     private lateinit var mModifiedAttachments: MutableList<Attachment>
 
-    constructor(summary: String,
+    constructor(context: Context,
+                summary: String,
                 tags: List<String>,
                 attachments: List<Attachment>,
                 @ColorInt themeColor: Int
-    ) : this() {
+    ) : this(context) {
         this.mSummary = summary
         this.mTags = tags
         this.mAttachments = attachments
@@ -135,9 +139,14 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     textView.visible(View.GONE)
                 else textView.setText(attachment.text)
 
-                val image = attachment.uri.toFile()?.let { decodeBitmap(it.path) }
-                if (image != null) imageView.imageBitmap = image
-                else imageView.visible(View.GONE)
+                doAsync {
+                    val image = attachment.uri.toFile()?.let { decodeBitmap(it.path) }
+
+                    context.runOnUiThread {
+                        if (image != null) imageView.imageBitmap = image
+                        else imageView.visible(View.GONE)
+                    }
+                }
 
                 setPosition(position)
             }
@@ -154,7 +163,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return true
     }
 
-    private fun isNewTag(v: TextView?, actionId: Int, event: KeyEvent?)
+    private fun isNewTag(v: TextView?, actionId: Int)
             = actionId == EditorInfo.IME_ACTION_DONE && v is EditText && v.text.isNotEmpty()
 
 
@@ -219,7 +228,7 @@ class AttachmentsAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (v is ImageButton) mSummaryViewHolder?.tagView?.removeView(v.parent as View)
     }
     private val addTagListener = { v: TextView?, actionId: Int, event: KeyEvent? ->
-        if (isNewTag(v, actionId, event)) addTag(v!!.text.toString(), mSummaryViewHolder!!.tagView)
+        if (isNewTag(v, actionId)) addTag(v!!.text.toString(), mSummaryViewHolder!!.tagView)
         else false
     }
     //    private val attachmentDeletionListener = { v: View, keyCode: Int, event: KeyEvent ->
