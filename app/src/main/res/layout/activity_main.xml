@@ -29,4 +29,11 @@
         app:pressedTranslationZ="16dp"
         app:rippleColor="@color/indigo" />
 
+    <Button
+        android:id="@+id/btn_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="进入浏览界面" />
+
+
 </LinearLayout>

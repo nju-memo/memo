@@ -1,22 +1,24 @@
 package edu.nju.memo;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
 import edu.nju.memo.activities.AdjustResizeLayout;
 import edu.nju.memo.activities.MemoDetailActivity;
+import edu.nju.memo.activities.fragment.RecyclerViewFragment;
 import edu.nju.memo.dao.CachedMemoDao;
-import edu.nju.memo.domain.Memo;
 import edu.nju.memo.service.StartFloatBallService;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,15 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(MainActivity.this, MemoDetailActivity.class);
                 intent.putExtra("memo", CachedMemoDao.INSTANCE.select(1));
                 startActivity(intent);
+            }
+        });
+
+        fragmentManager = this.getSupportFragmentManager();
+        Button btn_list = (Button) findViewById(R.id.btn_list);
+        btn_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragmentManager.beginTransaction().add(R.id.main_layout, new RecyclerViewFragment()).commit();
             }
         });
     }
