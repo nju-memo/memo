@@ -95,6 +95,9 @@ interface MemoDao {
      * */
     fun selectAllTags(): List<String>
 
+    fun selectAllTitles(): List<String>
+
+    fun selectAllSummary(): List<String>
     /**
      * Refresh the cacheToFile
      * */

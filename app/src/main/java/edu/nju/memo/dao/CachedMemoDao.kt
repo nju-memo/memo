@@ -120,7 +120,11 @@ object CachedMemoDao : MemoDao {
 
     override fun selectAll() = memoItems.values.toList()
 
-    override fun selectAllTags() = memoItems.flatMap { (_, v) -> v.tags }
+    override fun selectAllTags() = memoItems.flatMap { (_, v) -> v.tags }.distinct()
+
+    override fun selectAllSummary() = memoItems.map { (_, v) -> v.mSummary }
+
+    override fun selectAllTitles() = memoItems.map { (_, v) -> v.mTitle }
 
     override fun refresh() = synchronized(this) {
         db.use {
