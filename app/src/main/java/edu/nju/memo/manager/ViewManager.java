@@ -1,5 +1,6 @@
 package edu.nju.memo.manager;
 
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
@@ -17,12 +18,15 @@ import android.widget.Toast;
 
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 import edu.nju.memo.MemoPreview;
 import edu.nju.memo.core.MemoItemFactory;
 import edu.nju.memo.core.parser.MemoItemFactoryImpl;
 import edu.nju.memo.dao.CachedMemoDao;
 import edu.nju.memo.dao.MemoDao;
+import edu.nju.memo.domain.Attachment;
+import edu.nju.memo.domain.Memo;
 import edu.nju.memo.view.FloatBall;
 import edu.nju.memo.view.FloatMenu;
 import edu.nju.memo.view.FloatState;
@@ -138,12 +142,16 @@ public class ViewManager {
                     Intent intent = new Intent(context, MemoPreview.class);
                     intent.putExtra(MemoPreview.FROM, TAG);
                     intent.putExtra(MemoPreview.CONTENT, getClipBoardContent());
+                    intent.putExtra(MemoPreview.CLIPDATA, clipboardManager.getPrimaryClip());
                     context.startActivity(intent);
                     pressTime = upTime;
                 }
                 // 响应点击事件
                 else {
-
+                    Memo lastMemo = memoDao.latestMemo();
+                    List<Attachment> attachments = memoItemFactory.getAttachments(clipboardManager.getPrimaryClip());
+                    lastMemo.getMAttachments().addAll(attachments);
+                    memoDao.update(lastMemo);
                     Toast.makeText(context, "Saved to default category", Toast.LENGTH_SHORT).show();
                     pressTime = upTime;
                 }

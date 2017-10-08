@@ -1,5 +1,6 @@
 package edu.nju.memo;
 
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -18,8 +19,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.internal.util.Predicate;
 import com.bumptech.glide.Glide;
 
+import java.util.List;
+
+import edu.nju.memo.core.MemoItemFactory;
+import edu.nju.memo.core.parser.MemoItemFactoryImpl;
+import edu.nju.memo.dao.CachedMemoDao;
+import edu.nju.memo.dao.MemoDao;
+import edu.nju.memo.domain.Attachment;
+import edu.nju.memo.domain.Memo;
 import edu.nju.memo.manager.ViewManager;
 
 public class MemoPreview extends AppCompatActivity {
@@ -27,6 +37,8 @@ public class MemoPreview extends AppCompatActivity {
     public static final String FROM = "from";
 
     public static final String CONTENT = "content";
+
+    public static final String CLIPDATA = "clipData";
 
     private DrawerLayout drawerLayout;
 
@@ -36,21 +48,30 @@ public class MemoPreview extends AppCompatActivity {
 
     private ImageView imageView;
 
+    private Intent intent;
+
+    private MemoDao memoDao;
+
+    private MemoItemFactory memoItemFactory;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_memo_preview);
+
+        intent = getIntent();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         editText = (EditText) findViewById(R.id.memo_title);
+        editText.setText("新建备忘录");
         textView = (TextView) findViewById(R.id.clipboard_data);
         imageView = (ImageView) findViewById(R.id.screen_shot);
 
         initNavigationView();
-        initMemoContent(getIntent());
+        initMemoContent();
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -76,7 +97,50 @@ public class MemoPreview extends AppCompatActivity {
                 finish();
                 break;
             case R.id.done:
-                Toast.makeText(this, "You clicked Done", Toast.LENGTH_SHORT).show();
+                final String title = editText.getText().toString();
+                List<Memo> memos = memoDao.select(new Predicate<Memo>() {
+                    @Override
+                    public boolean apply(Memo memo) {
+                        return title.equals(memo.getMTitle());
+                    }
+                });
+                // 存在此标题
+                if (memos.size() > 0) {
+                    Memo memo = memos.get(0);
+                    String source = intent.getStringExtra(FROM);
+                    // 复制
+                    if (source != null && source.equals(ViewManager.TAG)) {
+                        ClipData clipData = intent.getParcelableExtra(CLIPDATA);
+                        List<Attachment> attachments = memoItemFactory.getAttachments(clipData);
+                        memo.getMAttachments().addAll(attachments);
+                        memoDao.update(memo);
+                    }
+                    // 截屏
+                    else {
+                        List<Attachment> attachments = memoItemFactory.getAttachments(intent);
+                        memo.getMAttachments().addAll(attachments);
+                        memoDao.update(memo);
+                    }
+                }
+                // 不存在此标题
+                else {
+                    String source = intent.getStringExtra(FROM);
+                    // 复制
+                    if (source != null && source.equals(ViewManager.TAG)) {
+                        ClipData clipData = intent.getParcelableExtra(CLIPDATA);
+                        Memo memo = memoItemFactory.getMemoItem(clipData);
+                        memo.setMTitle(title);
+                        memoDao.insert(memo);
+                    }
+                    // 截屏
+                    else {
+                        Memo memo = memoItemFactory.getMemoItem(intent);
+                        memo.setMTitle(title);
+                        memoDao.insert(memo);
+                    }
+                }
+                Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
+                finish();
                 break;
             default:
         }
@@ -88,11 +152,13 @@ public class MemoPreview extends AppCompatActivity {
      * 初始化边栏
      */
     private void initNavigationView() {
+        memoDao = CachedMemoDao.INSTANCE;
+        memoItemFactory = MemoItemFactoryImpl.INSTANCE;
+        List<String> titles = memoDao.selectAllTitles();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        // TODO 之后会替换成真实的标题项
-        navigationView.getMenu().add("head_1");
-        navigationView.getMenu().add("head_2");
-        navigationView.getMenu().add("head_3");
+        for (String title : titles) {
+            navigationView.getMenu().add(title);
+        }
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -106,9 +172,8 @@ public class MemoPreview extends AppCompatActivity {
 
     /**
      * 初始化Memo的内容，如果是复制文字则初始化TextView，如果是截屏，则初始化ImageView
-     * @param intent
      */
-    private void initMemoContent(Intent intent) {
+    private void initMemoContent() {
         String source = intent.getStringExtra(FROM);
         if (source != null && source.equals(ViewManager.TAG)) {
             imageView.setVisibility(View.GONE);
@@ -118,7 +183,7 @@ public class MemoPreview extends AppCompatActivity {
         else {
             textView.setVisibility(View.GONE);
             imageView.setVisibility(View.VISIBLE);
-            Uri image = getIntent().getExtras().getParcelable(Intent.EXTRA_STREAM);
+            Uri image = intent.getExtras().getParcelable(Intent.EXTRA_STREAM);
             Glide.with(this).load(image).into(imageView);
         }
     }
