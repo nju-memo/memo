@@ -3,6 +3,7 @@ package edu.nju.memo.core
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Intent
+import edu.nju.memo.domain.Attachment
 import edu.nju.memo.domain.Memo
 
 /**
@@ -32,4 +33,8 @@ interface MemoItemFactory {
      * @return corresponding Memo
      * */
     fun getMemoItem(data: ClipData): Memo
+
+    fun getAttachments(data: ClipData): List<Attachment>
+
+    fun getAttachments(intent: Intent): List<Attachment>
 }

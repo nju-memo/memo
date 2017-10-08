@@ -98,6 +98,13 @@ interface MemoDao {
     fun selectAllTitles(): List<String>
 
     fun selectAllSummary(): List<String>
+
+    /**
+     * Get most recently created memo.
+     *
+     * @return latest memo, or null if no memo ever created
+     * */
+    fun latestMemo(): Memo?
     /**
      * Refresh the cacheToFile
      * */
