@@ -19,6 +19,10 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 
 import edu.nju.memo.MemoPreview;
+import edu.nju.memo.core.MemoItemFactory;
+import edu.nju.memo.core.parser.MemoItemFactoryImpl;
+import edu.nju.memo.dao.CachedMemoDao;
+import edu.nju.memo.dao.MemoDao;
 import edu.nju.memo.view.FloatBall;
 import edu.nju.memo.view.FloatMenu;
 import edu.nju.memo.view.FloatState;
@@ -27,6 +31,10 @@ import edu.nju.memo.view.FloatState;
 public class ViewManager {
 
     public static final String TAG = "ViewManager";
+
+    private MemoDao memoDao;
+
+    private MemoItemFactory memoItemFactory;
 
     private FloatBall floatBall;
 
@@ -57,6 +65,9 @@ public class ViewManager {
     }
 
     private void init() {
+        memoDao = CachedMemoDao.INSTANCE;
+        memoItemFactory = MemoItemFactoryImpl.INSTANCE;
+
         pressTime = 0;
         upTime = 0;
 
@@ -132,6 +143,7 @@ public class ViewManager {
                 }
                 // 响应点击事件
                 else {
+
                     Toast.makeText(context, "Saved to default category", Toast.LENGTH_SHORT).show();
                     pressTime = upTime;
                 }
@@ -158,20 +170,6 @@ public class ViewManager {
         windowManager.addView(floatBall, floatBallParams);
     }
 
-    //显示底部菜单
-    private void showFloatMenu() {
-        if (floatMenuParams == null) {
-            floatMenuParams = new LayoutParams();
-            floatMenuParams.width = getScreenWidth();
-            floatMenuParams.height = getScreenHeight() - getStatusHeight();
-            floatMenuParams.gravity = Gravity.BOTTOM;
-            floatMenuParams.type = LayoutParams.TYPE_TOAST;
-            floatMenuParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE | LayoutParams.FLAG_NOT_TOUCH_MODAL;
-            floatMenuParams.format = PixelFormat.RGBA_8888;
-        }
-        floatMenu.setContent(getClipBoardContent());
-        windowManager.addView(floatMenu, floatMenuParams);
-    }
 
     //隐藏底部菜单
     public void hideFloatMenu() {
