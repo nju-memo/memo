@@ -120,6 +120,8 @@ object CachedMemoDao : MemoDao {
 
     override fun selectAll() = memoItems.values.toList()
 
+    override fun selectAllTags() = memoItems.flatMap { (_, v) -> v.tags }
+
     override fun refresh() = synchronized(this) {
         db.use {
             select(tableOf<Memo>(), "ROWID", "*").parseList(

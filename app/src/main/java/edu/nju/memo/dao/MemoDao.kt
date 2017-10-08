@@ -89,6 +89,13 @@ interface MemoDao {
     fun selectAll(): List<Memo>
 
     /**
+     * Get all tags.
+     *
+     * @return all tags
+     * */
+    fun selectAllTags(): List<String>
+
+    /**
      * Refresh the cacheToFile
      * */
     fun refresh(): MutableMap<Long, Memo>
