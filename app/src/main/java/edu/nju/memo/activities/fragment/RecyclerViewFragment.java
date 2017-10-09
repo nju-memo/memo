@@ -1,8 +1,10 @@
 package edu.nju.memo.activities.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,11 +16,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import edu.nju.memo.R;
-import edu.nju.memo.view.Record;
+import edu.nju.memo.activities.MemoDetailActivity;
+import edu.nju.memo.dao.CachedMemoDao;
+import edu.nju.memo.domain.Memo;
 import edu.nju.memo.view.SwipeItemLayout;
 
 /**
@@ -28,7 +31,6 @@ import edu.nju.memo.view.SwipeItemLayout;
 
 public class RecyclerViewFragment extends Fragment {
     private View root;
-    private List<Record> recordList;
 
     @Nullable
     @Override
@@ -38,29 +40,37 @@ public class RecyclerViewFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.rv_record);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.addOnItemTouchListener(new SwipeItemLayout.OnSwipeItemTouchListener(getContext()));
-            recyclerView.setAdapter(new MyAdapter(getContext(), initRecordList()));
+            recyclerView.setAdapter(new MyAdapter(getContext(), initMemoList()));
             recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),LinearLayoutManager.VERTICAL));
-
         }
         return root;
     }
 
-    private List<Record> initRecordList() {
-        recordList = new ArrayList<>();
-        for(int i = 0; i < 10; i ++) {
-            Record record = new Record(R.mipmap.ic_launcher, "2017/10/6 20:5" + i);
-            recordList.add(record);
-        }
-        return recordList;
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.floatingActionButton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), MemoDetailActivity.class);
+                intent.putExtra("memo", CachedMemoDao.INSTANCE.select(1));
+                startActivity(intent);
+            }
+        });
+    }
+
+    private List<Memo> initMemoList() {
+        return CachedMemoDao.INSTANCE.selectAll();
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.Holder> {
         private Context mContext;
-        private List<Record> recordList;
+        private List<Memo> memoList;
 
-        public MyAdapter(Context context, List<Record> recordList) {
+        public MyAdapter(Context context, List<Memo> memoList) {
             this.mContext = context;
-            this.recordList = recordList;
+            this.memoList = memoList;
         }
 
         @Override
@@ -71,29 +81,28 @@ public class RecyclerViewFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(Holder holder, int position) {
-            Record record = recordList.get(position);
-            holder.recordTime.setText(record.getDate());
-            holder.recordImage.setImageResource(record.getImageId());
+            Memo memo = memoList.get(position);
+            holder.memoTitle.setText(memo.getMTitle());
+            holder.memoTime.setText("" + memo.getCreateTime());
         }
 
         @Override
         public int getItemCount() {
-            return recordList.size();
+            return memoList.size();
         }
 
-        class Holder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-            ImageView recordImage;
-            TextView recordTime;
+        class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+            TextView memoTitle;
+            TextView memoTime;
 
             Holder(View itemView) {
                 super(itemView);
 
-                recordImage = (ImageView) itemView.findViewById(R.id.iv_record);
-                recordTime = (TextView) itemView.findViewById(R.id.tv_date);
+                memoTitle = (TextView) itemView.findViewById(R.id.tv_title);
+                memoTime = (TextView) itemView.findViewById(R.id.tv_date);
 
                 View main = itemView.findViewById(R.id.main);
                 main.setOnClickListener(this);
-                main.setOnLongClickListener(this);
 
                 View delete = itemView.findViewById(R.id.delete);
                 delete.setOnClickListener(this);
@@ -101,31 +110,21 @@ public class RecyclerViewFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+                int pos = getAdapterPosition();
+                Memo memo = memoList.get(pos);
                 switch (v.getId()) {
                     case R.id.main:
-                        Toast.makeText(v.getContext(), "点击了main，位置为：" + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(getActivity(), MemoDetailActivity.class);
+                        intent.putExtra("memo", memo);
+                        startActivity(intent);
                         break;
 
                     case R.id.delete:
-                        int pos = getAdapterPosition();
-                        recordList.remove(pos);
+                        CachedMemoDao.INSTANCE.delete(memo.getId());
+                        memoList.remove(pos);
                         notifyItemRemoved(pos);
-                        /**
-                         * TODO
-                         * 删掉对应数据
-                         */
                         break;
                 }
-            }
-
-            @Override
-            public boolean onLongClick(View v) {
-                switch (v.getId()) {
-                    case R.id.main:
-                        Toast.makeText(v.getContext(), "长按了main，位置为：" + getAdapterPosition(), Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                return false;
             }
         }
     }

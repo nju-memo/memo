@@ -1,39 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="edu.nju.memo.MainActivity">
-
-    <Button
-        android:id="@+id/button_on"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="开启悬浮球" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:backgroundTint="@color/blue"
-        android:clickable="true"
-        android:elevation="8dp"
-        android:src="@drawable/ic_add_white_24dp"
-
-        app:borderWidth="0dp"
-        app:pressedTranslationZ="16dp"
-        app:rippleColor="@color/indigo" />
-
-    <Button
-        android:id="@+id/btn_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="进入浏览界面" />
-
-
 </LinearLayout>

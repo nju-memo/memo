@@ -8,17 +8,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/iv_record"
-            android:src="@mipmap/ic_launcher"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Title: 2017/10/06 13:32"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="12dp" />
 
         <TextView
             android:id="@+id/tv_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Time: 2017/10/06 13:32"/>
+            android:text="Time: 2017/10/06 13:32"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="14dp" />
     </RelativeLayout>
 
     <LinearLayout
