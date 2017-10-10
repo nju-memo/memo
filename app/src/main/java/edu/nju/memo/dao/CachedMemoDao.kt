@@ -118,13 +118,13 @@ object CachedMemoDao : MemoDao {
 
     override fun select(test: Predicate<Memo>) = memoItems.filterValues { test.apply(it) }.map { (_, v) -> v }
 
-    override fun selectAll() = memoItems.values.toList()
+    override fun selectAll() = memoItems.values.toList().toMutableList()
 
-    override fun selectAllTags() = memoItems.flatMap { (_, v) -> v.tags }.distinct()
+    override fun selectAllTags() = memoItems.flatMap { (_, v) -> v.tags }.distinct().toMutableList()
 
-    override fun selectAllSummary() = memoItems.map { (_, v) -> v.mSummary }
+    override fun selectAllSummary() = memoItems.map { (_, v) -> v.mSummary }.toMutableList()
 
-    override fun selectAllTitles() = memoItems.map { (_, v) -> v.mTitle }
+    override fun selectAllTitles() = memoItems.map { (_, v) -> v.mTitle }.toMutableList()
 
     override fun latestMemo() = memoItems.values.maxBy { it.createTime }
 
