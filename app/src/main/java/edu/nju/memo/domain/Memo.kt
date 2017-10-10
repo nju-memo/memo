@@ -114,4 +114,7 @@ class Memo() : Parcelable {
 
         override fun newArray(size: Int): Array<Memo?> = arrayOfNulls(size)
     }
+
+    fun isEmpty() =
+            mTitle.isEmpty() && mSummary.isEmpty() && mAttachments.all { it.isEmpty() }
 }

@@ -57,13 +57,9 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
     private fun bindViewHolder(holder: RecyclerView.ViewHolder, position: Int, overwrite: Boolean) =
             when (position) {
                 0 -> (holder as SummaryViewHolder).
-                        let {
-                            renderSummary(it, editable, overwrite)
-                        }
+                        let { renderSummary(it, editable, overwrite) }
                 else -> (holder as AttachmentViewHolder).
-                        let {
-                            renderAttachment(position - 1, it, editable, overwrite)
-                        }
+                        let { renderAttachment(position - 1, it, editable, overwrite) }
             }.let { Unit }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int) =
@@ -103,17 +99,20 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
         holder.tagEdit.visible(if (writable) View.VISIBLE else View.GONE)
     }
 
-    private fun inflateSummary(parent: ViewGroup?) =
-            SummaryViewHolder(inflater.inflate(R.layout.layout_summary, parent, false)).
-                    also { holder -> holder.layout.setBackgroundColor(mThemeColor) }.
-                    also { holder -> holder.textView.setText(mModifiedSummary) }.
-                    also { holder -> mModifiedTags.forEach { addTag(it, holder.tagView) } }.
-                    also { it.tagEdit.setOnEditorActionListener(addTagListener) }.
-                    also { mSummaryViewHolder = it }
+    private fun inflateSummary(parent: ViewGroup?): RecyclerView.ViewHolder? {
+        mSummaryViewHolder = SummaryViewHolder(inflater.inflate(R.layout.layout_summary, parent, false)).
+                also { holder -> holder.layout.setBackgroundColor(mThemeColor) }.
+                also { holder -> holder.textView.setText(mModifiedSummary) }.
+                also { holder -> mModifiedTags.forEach { addTag(it, holder.tagView) } }.
+                also { it.tagEdit.setOnEditorActionListener(addTagListener) }
+        return mSummaryViewHolder
+    }
 
-    private fun inflateAttachment(parent: ViewGroup?) =
-            AttachmentViewHolder(inflater.inflate(R.layout.layout_attachment, parent, false)).
-                    also { attachmentViewHolders.add(it) }
+    private fun inflateAttachment(parent: ViewGroup?): RecyclerView.ViewHolder? {
+        val vh = AttachmentViewHolder(inflater.inflate(R.layout.layout_attachment, parent, false))
+        attachmentViewHolders.add(vh)
+        return vh
+    }
 
     private fun renderSummary(holder: SummaryViewHolder,
                               writable: Boolean = false,
@@ -121,8 +120,8 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
             holder.apply {
                 if (overwrite) saveSummaryState(holder)
 
-                textView.editable(writable).
-                        setText(mModifiedSummary.takeIf { it.isNotBlank() } ?: string(R.string.text_no_summary))
+                textView.editable(writable)
+                        .setText(mModifiedSummary.takeIf { writable || it.isNotBlank() } ?: string(R.string.text_no_summary))
                 tagEditable(writable, holder)
             }
 
@@ -151,7 +150,7 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
                 setPosition(position)
             }
 
-    private fun addTag(tag: String, container: FlowLayout): Boolean {
+    private fun addTag(tag: String, container: FlowLayout) {
         val newTagLayout = inflater.inflate(R.layout.layout_tag, container, false)
         newTagLayout.child<TextView>(R.id.text_tag).text = tag
         newTagLayout.child<ImageButton>(R.id.btn_delete).
@@ -160,7 +159,6 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
                     setOnClickListener(deleteTagListener)
                 }
         container.addView(newTagLayout)
-        return true
     }
 
     private fun isNewTag(v: TextView?, actionId: Int)
@@ -228,8 +226,11 @@ class AttachmentsAdapter(private val context: Context) : RecyclerView.Adapter<Re
         if (v is ImageButton) mSummaryViewHolder?.tagView?.removeView(v.parent as View)
     }
     private val addTagListener = { v: TextView?, actionId: Int, event: KeyEvent? ->
-        if (isNewTag(v, actionId)) addTag(v!!.text.toString(), mSummaryViewHolder!!.tagView)
-        else false
+        if (isNewTag(v, actionId)) {
+            addTag(v!!.text.toString(), mSummaryViewHolder!!.tagView)
+            v.text = ""
+            true
+        } else false
     }
     //    private val attachmentDeletionListener = { v: View, keyCode: Int, event: KeyEvent ->
 //        isDeletion(v, keyCode, event).

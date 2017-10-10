@@ -50,7 +50,9 @@ class MemoDetailActivity : AppCompatActivity() {
 
         mMemo = input ?: Memo()
         renderContent(cachedPic?.get())
-        if (input != null) disableEdit()
+        disableEdit()
+        if (input == null || input.isEmpty()) enableEdit()
+        addAppbarListeners()
     }
 
     private fun renderContent(cachedPic: Bitmap?) {
@@ -101,6 +103,17 @@ class MemoDetailActivity : AppCompatActivity() {
                     let { decodeBitmap(it.path, height = dimensionPixelSize(R.dimen.appbar_height)) }
 
 
+    private fun addAppbarListeners() {
+        layout_appbar.addOnOffsetChangedListener { appbar, verticalOffset ->
+            // verticalOffset is always minus
+            val multiplier = (-verticalOffset / (appbar.totalScrollRange * 0.75f)).coerceAtMost(1.0f)
+            val alpha = (255 * (1 - multiplier)).toInt()
+            toolbar.background?.alpha = alpha
+            layout_header.background?.apply { this.alpha = alpha }
+        }
+        layout_appbar.addOnOffsetChangedListener(TitleTranslateManager(edit_title, 20.0.toPx()))
+    }
+
     @ColorInt
     private fun setDecoratedHeader(bitmap: Bitmap, title: String): Int {
         decorateTitleScrim()
@@ -111,14 +124,6 @@ class MemoDetailActivity : AppCompatActivity() {
     private fun decorateTitleScrim() {
         toolbar.background = resources.getDrawable(R.drawable.gradient_black_transparent)
         layout_header.background = resources.getDrawable(R.drawable.reverse_gradient_black_tranparent)
-        layout_appbar.addOnOffsetChangedListener { appbar, verticalOffset ->
-            // verticalOffset is always minus
-            val multiplier = (-verticalOffset / (appbar.totalScrollRange * 0.75f)).coerceAtMost(1.0f)
-            val alpha = (255 * (1 - multiplier)).toInt()
-            toolbar.background.alpha = alpha
-            layout_header.background.alpha = alpha
-        }
-        layout_appbar.addOnOffsetChangedListener(TitleTranslateManager(edit_title, 20.0.toPx()))
     }
 
     private fun setHeaderTitle(title: String) {

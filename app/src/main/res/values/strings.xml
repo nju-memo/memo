@@ -11,4 +11,5 @@
     <string name="desc_done">确认</string>
     <string name="tag">删除tag</string>
     <string name="hint_new_tag">新标签</string>
+    <string name="hint_add_tag">添加新标签</string>
 </resources>

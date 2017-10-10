@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.support.annotation.ColorInt
 import android.text.method.KeyListener
+import android.text.method.TextKeyListener
 import android.text.util.Linkify
 import android.util.DisplayMetrics
 import android.util.Log
@@ -108,8 +109,8 @@ fun EditText.readOnly() = apply {
 }
 
 fun EditText.writable() = apply {
-    background = getTag(backgroundTag)
-    keyListener = getTag(keyListenerTag)
+    background = getTag(backgroundTag) ?: background
+    keyListener = getTag(keyListenerTag) ?: keyListener
 
     setOnLongClickListener { _ -> false }
     linkClickable(false)
