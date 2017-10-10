@@ -61,6 +61,9 @@ public class ViewManager {
     private long upTime;
 
 
+    public FloatBall getFloatBall() {
+        return floatBall;
+    }
 
     // 私有化构造函数
     private ViewManager(Context context) {
@@ -76,7 +79,7 @@ public class ViewManager {
         upTime = 0;
 
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        clipboardManager=(ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         floatBall = new FloatBall(context);
         floatMenu = new FloatMenu(context);
         View.OnTouchListener touchListener = new View.OnTouchListener() {

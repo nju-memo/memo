@@ -37,13 +37,13 @@ public class RecyclerViewFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if(root==null){
-            root = inflater.inflate(R.layout.activity_item_list,container,false);
+        if (root == null) {
+            root = inflater.inflate(R.layout.activity_item_list, container, false);
             recyclerView = (RecyclerView) root.findViewById(R.id.rv_record);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.addOnItemTouchListener(new SwipeItemLayout.OnSwipeItemTouchListener(getContext()));
             recyclerView.setAdapter(new MyAdapter(getContext(), initMemoList()));
-            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),LinearLayoutManager.VERTICAL));
+            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL));
         }
         return root;
     }
@@ -56,7 +56,6 @@ public class RecyclerViewFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), MemoDetailActivity.class);
-                intent.putExtra("memo", CachedMemoDao.INSTANCE.select(1));
                 startActivity(intent);
             }
         });

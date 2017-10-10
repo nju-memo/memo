@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 
 import edu.nju.memo.manager.ViewManager;
 
@@ -22,9 +23,10 @@ public class StartFloatBallService extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         Log.d(TAG, "onCreate: Service");
         ViewManager manager = ViewManager.getInstance(this);
         manager.showFloatBall();
-        super.onCreate();
+        manager.getFloatBall().setVisibility(View.VISIBLE);
     }
 }

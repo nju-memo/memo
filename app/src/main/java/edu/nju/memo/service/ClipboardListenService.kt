@@ -10,6 +10,8 @@ import android.os.IBinder
 import edu.nju.memo.MainActivity
 import edu.nju.memo.R
 import edu.nju.memo.common.asArr
+import edu.nju.memo.manager.ViewManager
+import org.jetbrains.anko.runOnUiThread
 import org.jetbrains.anko.toast
 
 /**
@@ -27,26 +29,20 @@ class ClipboardListenService : Service(), ClipboardManager.OnPrimaryClipChangedL
         clipboardManager.addPrimaryClipChangedListener(this)
         startForeground(1, Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setTicker("Ticker")
-                .setContentTitle("Title")
-                .setContentText("Text")
-                .setContentIntent(
-                        PendingIntent.getActivities(this, 0,
-                                Intent(this, MainActivity::class.java).asArr(), 0))
-                .setNumber(1)
+                .setContentTitle("稍后再看")
+                .setContentText("正在监听剪贴板")
                 .build())
     }
 
     override fun onPrimaryClipChanged() = System.currentTimeMillis().let { curTime ->
         if (prevTime == 0L || curTime - prevTime > THRESHOLD) {
             toast("Copied!!")
-            sendBroadcast(Intent("edu.nju.memo.clipboard_change"))
         }
         prevTime = curTime
     }
 
     override fun onDestroy() {
-        stopForeground(false)
+        stopForeground(true)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
