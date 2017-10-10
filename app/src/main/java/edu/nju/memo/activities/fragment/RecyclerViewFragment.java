@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import edu.nju.memo.R;
@@ -31,13 +32,14 @@ import edu.nju.memo.view.SwipeItemLayout;
 
 public class RecyclerViewFragment extends Fragment {
     private View root;
+    private RecyclerView recyclerView;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if(root==null){
             root = inflater.inflate(R.layout.activity_item_list,container,false);
-            RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.rv_record);
+            recyclerView = (RecyclerView) root.findViewById(R.id.rv_record);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.addOnItemTouchListener(new SwipeItemLayout.OnSwipeItemTouchListener(getContext()));
             recyclerView.setAdapter(new MyAdapter(getContext(), initMemoList()));
@@ -58,6 +60,12 @@ public class RecyclerViewFragment extends Fragment {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        recyclerView.setAdapter(new MyAdapter(getContext(), initMemoList()));
     }
 
     private List<Memo> initMemoList() {
@@ -82,8 +90,9 @@ public class RecyclerViewFragment extends Fragment {
         @Override
         public void onBindViewHolder(Holder holder, int position) {
             Memo memo = memoList.get(position);
-            holder.memoTitle.setText(memo.getMTitle());
-            holder.memoTime.setText("" + memo.getCreateTime());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            holder.memoTitle.setText("名称: " + memo.getMTitle());
+            holder.memoTime.setText("时间: " + sdf.format(memo.getCreateTime()));
         }
 
         @Override

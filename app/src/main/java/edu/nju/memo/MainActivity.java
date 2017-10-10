@@ -1,5 +1,6 @@
 package edu.nju.memo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -19,4 +20,5 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         fragmentManager.beginTransaction().add(R.id.main_layout, new RecyclerViewFragment()).commit();
     }
+
 }
